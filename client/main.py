@@ -2,6 +2,7 @@ import customtkinter
 import os
 from PIL import Image
 from place_frame import PlaceFrame
+from friend_frame import FriendFrame
 
 customtkinter.set_appearance_mode("light")
 
@@ -62,7 +63,7 @@ class App(customtkinter.CTk):
         self.place_frame.grid_columnconfigure(0, weight=1)
         
         # create friend frame
-        self.friend_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.friend_frame = FriendFrame(self)
         self.friend_frame.grid_columnconfigure(0, weight=1)
         
         # create notification frame
