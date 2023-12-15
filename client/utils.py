@@ -2,7 +2,7 @@ import socket
 from _thread import *
 import threading
 
-def recvall(sock):
+def recvall_str(sock):
     # Helper function to recv all streaming data using \r\n
     data = ""
     condition = True
@@ -11,7 +11,11 @@ def recvall(sock):
         if not packet:
             return data
         packet_str = packet.decode('utf8')
-        if "\r\n" in packet_str:
+        if packet_str.endswith("\r\n"):
             condition = False
         data += packet.decode('utf8')
-    return data
+    return str(data[:-2])
+
+def sendall_str(sock, message):
+    message += "\r\n"
+    sock.sendall(message.encode("utf-8"))
