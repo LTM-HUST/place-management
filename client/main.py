@@ -11,7 +11,7 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("Place Management")
-        self.geometry("700x450")
+        self.minsize(1300, 600)
         
         # set grid layout 1x2
         self.grid_rowconfigure(0, weight=1)
