@@ -4,19 +4,19 @@ from PIL import Image
 friends = [
     {
         "id": 123,
-        "name": "hieu"
+        "username": "hieu"
     },
     {
         "id": 124,
-        "name": "huy"
+        "username": "huy"
     },
     {
         "id": 125,
-        "name": "hoang"
+        "username": "hoang"
     },
     {
         "id": 126,
-        "name": "tien"
+        "username": "tien"
     },
 ]
 
@@ -71,7 +71,7 @@ class FriendItem(CTkFrame):
         self.delete_icon = CTkImage(Image.open(os.path.join(image_path, 'delete_icon.png')), size=(30, 30))
 
         # Widgets
-        friend_name_label = CTkLabel(master=self, text=friend['name'])
+        friend_name_label = CTkLabel(master=self, text=friend['username'])
         friend_name_label.grid(row=0, column=0, sticky='w')
         space_label = CTkLabel(master=self, text=" ")
         space_label.grid(row=1, column=0, sticky='w')
@@ -97,16 +97,16 @@ class FriendItem(CTkFrame):
     def on_click(self, event):
         # Modify to render a new frame with the place details
         print(f"Friend ID: {self.friend['id']}")
-        print(f"Friend name: {self.friend['name']}")
+        print(f"Friend name: {self.friend['username']}")
         
     def accept_friend(self):
-        print(f"{self.friend['name']} is now your friend!")
+        print(f"{self.friend['username']} is now your friend!")
         self.destroy()
         
     def reject_friend(self):
-        print(f"{self.friend['name']} is rejected!")
+        print(f"{self.friend['username']} is rejected!")
         self.destroy()
         
     def delete_friend(self):
-        print(f"{self.friend['name']} is no longer in your friend list!")
+        print(f"{self.friend['username']} is no longer in your friend list!")
         self.destroy()
