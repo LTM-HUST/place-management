@@ -1,6 +1,7 @@
 import customtkinter
 import os
 from PIL import Image
+from place_frame import PlaceFrame
 
 customtkinter.set_appearance_mode("light")
 
@@ -57,7 +58,7 @@ class App(customtkinter.CTk):
         self.profile_button.grid(row=4, column=0, sticky="ew")
         
         # create place frame
-        self.place_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.place_frame = PlaceFrame(self)
         self.place_frame.grid_columnconfigure(0, weight=1)
         
         # create friend frame
@@ -103,6 +104,8 @@ class App(customtkinter.CTk):
             self.profile_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.profile_frame.grid_forget()
+        
+
         
 if __name__ == "__main__":
     app = App()
