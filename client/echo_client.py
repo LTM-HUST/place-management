@@ -49,10 +49,14 @@ def Main():
         "task": "view_friend_request",
         "content": {}
     }
+    message7 = {
+        "task": "view_notification_list",
+        "content": {}
+    }
     
     while True:
         # message sent to server
-        sendall_str(s, message6)
+        sendall_str(s, message7)
  
         # message received from server
         data = recvall_str(s)
