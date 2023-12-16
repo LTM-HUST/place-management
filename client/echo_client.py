@@ -17,16 +17,42 @@ def Main():
     s.connect((host,port))
  
     # message you send to server
-    message = {
+    message1 = {
         "task": "send_friend_request",
         "content": {
-            "target_friend_id": 3
+            "target_friend_id": 5
         }
     }
+    message2 = {
+        "task": "accept_friend_request",
+        "content": {
+            "source_friend_id": 1
+        }
+    }
+    message3 = {
+        "task": "reject_friend_request",
+        "content": {
+            "source_friend_id": 4
+        }
+    }
+    message4 = {
+        "task": "delete_friend",
+        "content": {
+            "friend_id": 3
+        }
+    }
+    message5 = {
+        "task": "view_friend_list",
+        "content": {}
+    }
+    message6 = {
+        "task": "view_friend_request",
+        "content": {}
+    }
+    
     while True:
- 
         # message sent to server
-        sendall_str(s, message)
+        sendall_str(s, message6)
  
         # message received from server
         data = recvall_str(s)
