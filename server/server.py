@@ -4,7 +4,7 @@ import threading
 import json
 from sqlalchemy.orm import sessionmaker
 
-from utils import recvall_str, sendall_str
+from utils import recvall_str, sendall_str, write_log
 from database import meta, conn, Base
 from models import *
 from friend_wrapper import FriendRoute
@@ -25,18 +25,21 @@ def echo(sock):
         
     sock.close()
     
-def task(sock):
+def task(sock, ip, port):
     user_id = 2
     while True:
         data = recvall_str(sock)
         if not data:
+            write_log(ip, port, type="close")
             break
+        write_log(ip, port, type="request", data=data)
         data = json.loads(data)
         task = data.get("task", None)
         if task in TASK_FRIEND:
             route = FriendRoute(session, user_id, data)
             response = route.response()
         sendall_str(sock, response)
+        write_log(ip, port, type="response", data=response)
     
     sock.close()
             
@@ -58,8 +61,9 @@ if __name__ == '__main__':
             connection, addr = server_socket.accept()
             
             print('Connected to :', addr[0], ':', addr[1])
+            write_log(addr[0], addr[1], type="connect")
             
-            start_new_thread(task, (connection,))
+            start_new_thread(task, (connection, addr[0], addr[1]))
         except KeyboardInterrupt:
             if connection:
                 connection.close()

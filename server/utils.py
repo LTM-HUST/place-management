@@ -1,10 +1,14 @@
+import os
+
 from enum import Enum
 import socket
 from _thread import *
 import threading
 
-from typing import Union
+from typing import Union, Literal
 import json
+import datetime
+from zoneinfo import ZoneInfo
 
 PLACE_CATEGORY = [
   'accounting',
@@ -111,6 +115,8 @@ FRIEND_STATUS = [
     "rejected"
 ]
 
+LOG_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logging.txt')
+
 def recvall_str(sock):
     # Helper function to recv all streaming data using \r\n
     data = ""
@@ -132,3 +138,28 @@ def sendall_str(sock, message: Union[dict, str]):
     if not message.endswith("\r\n"):
         message += "\r\n"
     sock.sendall(message.encode("utf-8"))
+    
+def write_log(ip_client, port_client, type: Literal["connect", "close", "request", "response"], data: Union[dict, str] = None):
+    if data:
+        if isinstance(data, dict):
+            data = json.dumps(data)
+    
+    current_time = datetime.datetime.now(tz=ZoneInfo("Asia/Ho_Chi_Minh"))
+    
+    message = None
+    if type == "connect":
+        message = f"{current_time}: Server was connected to {ip_client}:{port_client}\n"
+    if type == "close":
+        message = f"{current_time}: Closed connection to {ip_client}:{port_client}\n"
+    if type == "request" and data:
+        message = f"{current_time}: Client {ip_client}:{port_client} sent message to server: {data}\n"
+    if type == "response" and data:
+        message = f"{current_time}: Client {ip_client}:{port_client} received message from server: {data}\n"
+        
+    if message:
+        with open(LOG_PATH, "a+", encoding="utf-8") as f:
+            f.write(message)
+    
+    
+    
+    
