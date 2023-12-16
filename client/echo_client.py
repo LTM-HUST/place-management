@@ -17,7 +17,12 @@ def Main():
     s.connect((host,port))
  
     # message you send to server
-    message = "huydt" * 1000
+    message = {
+        "task": "send_friend_request",
+        "content": {
+            "target_friend_id": 3
+        }
+    }
     while True:
  
         # message sent to server
