@@ -26,7 +26,7 @@ def echo(sock):
     sock.close()
     
 def task(sock):
-    user_id = 11
+    user_id = 2
     while True:
         data = recvall_str(sock)
         if not data:
