@@ -1,11 +1,15 @@
 from sqlalchemy.orm import declarative_base
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker
 
-engine=create_engine("postgresql://{YOUR_DATABASE_USER}:{YOUR_DATABASE_PASSWORD}@localhost/{YOUR_DATABASE_NAME}",
+SQLALCHEMY_DATABASE_URL = "mysql+mysqlconnector://root:@localhost:3306/place_management"
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL,
     echo=True
 )
 
-Base = declarative_base()
+meta = MetaData()
 
-SessionLocal = sessionmaker(bind=engine)
+conn = engine.connect()
+
+Base = declarative_base()
