@@ -3,6 +3,9 @@ import socket
 from _thread import *
 import threading
 
+from typing import Union
+import json
+
 PLACE_CATEGORY = [
   'accounting',
   'airport',
@@ -122,6 +125,10 @@ def recvall_str(sock):
         data += packet.decode('utf8')
     return str(data[:-2])
 
-def sendall_str(sock, message):
-    message += "\r\n"
+def sendall_str(sock, message: Union[dict, str]):
+    if isinstance(message, dict):
+        message = json.dumps(message)
+    
+    if not message.endswith("\r\n"):
+        message += "\r\n"
     sock.sendall(message.encode("utf-8"))
