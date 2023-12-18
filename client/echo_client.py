@@ -53,18 +53,55 @@ def Main():
         "task": "view_notification_list",
         "content": {}
     }
+    message8 = {
+        "task": "register",
+        "content": {
+            "username": "nguyenhieu",
+            "password": "111111",
+            "retype_password": "111111"
+        }
+    }
+
+    message9 = {
+        "task": "login",
+        "content": {
+            "username": "nguyenhieu",
+            "password": "111111"
+        }
+    }
+
+    message10 = {
+        "task": "logout",
+        "content": {}
+    }
+
+    message11 = {
+        "task": "view_profile",
+        "content": {}
+    }
+
+    message12 = {
+        "task": "change_password",
+        "content": {
+            "old_password": "222222",
+            "new_password": "111111",
+            "retype_password": "111111"
+        }
+    }
+
     
     while True:
         # message sent to server
-        sendall_str(s, message7)
- 
-        # message received from server
-        data = recvall_str(s)
- 
-        # print the received message
-        # here it would be a reverse of sent message
-        print('Received from the server :', data)
-        print("Length: ", len(data))
+        for message in [message8, message11, message12, message10, message9]:
+            sendall_str(s, message)
+    
+            # message received from server
+            data = recvall_str(s) 
+    
+            # print the received message
+            # here it would be a reverse of sent message
+            print('Received from the server:', data)
+            print("Length: ", len(data))
  
         # ask the client whether he wants to continue
         ans = input('\nDo you want to continue(y/n) :')
