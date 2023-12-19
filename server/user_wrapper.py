@@ -117,7 +117,7 @@ class UserRoute():
             success = False
             code = 203
         else:
-            user.password = self.new_password
+            self.user.password = self.new_password
             self.session.commit()
             success = True
             code = 103
