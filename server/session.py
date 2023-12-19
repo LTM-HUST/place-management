@@ -23,7 +23,7 @@ class SessionManager:
 
 
 def get_user_from_session_id(func):
-    def wrapper(self):
+    def wrapper(self, *args, **kw):
         user_id = session_manager.get_user_id(self.session_id)
         if user_id is None:
             return {
@@ -38,8 +38,8 @@ def get_user_from_session_id(func):
                 "code": 206,
                 "content": {}
             }
-        return func(self)
+        return func(self, *args, **kw)
     return wrapper
 
 session_manager = SessionManager()
-session_manager.sessions["01bf1e6a-1e1d-4242-9b8a-878267507983"] = '128' 
+session_manager.sessions["01bf1e6a-1e1d-4242-9b8a-878267507983"] = '1' 
