@@ -17,7 +17,7 @@ def recvall_str(sock):
         if packet_str.endswith("\r\n"):
             condition = False
         data += packet.decode('utf8')
-    return str(data[:-2])
+    return json.loads(str(data[:-2]))
 
 def sendall_str(sock, message: Union[dict, str], session_id=None):
     if isinstance(message, dict):
@@ -63,7 +63,7 @@ def send_friend_task(sock,
     
 def send_notification_task(sock,
                             session_id,
-                            task: Literal["view_notification_list"]):
+                            task: Literal["view_notification_list"] = "view_notification_list"):
     if task in ["view_notification_list"]:
         content = {}
         

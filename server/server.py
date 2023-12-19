@@ -2,9 +2,11 @@ import socket
 from _thread import *
 import threading
 import json
+
 from sqlalchemy.orm import sessionmaker
 from session import session_manager
 
+from session import session_manager
 from utils import recvall_str, sendall_str, write_log
 from database import meta, conn, Base
 from models import *
@@ -33,21 +35,28 @@ def echo(sock):
     sock.close()
 
 
-def task(sock, ip, port):
-    user_id = 1
+def task(sock, session_id, ip, port):
+    user_id = None
     while True:
-        data = recvall_str(sock)
+        try:
+            data = recvall_str(sock)
+        except ConnectionResetError as e:
+            write_log(ip, port, type="close")
+            print(f"{ip}:{port} has been disconnected!")
+            break
+            
         if not data:
             write_log(ip, port, type="close")
             break
         write_log(ip, port, type="request", data=data)
         data = json.loads(data)
+        print(data)
         task = data.get("task", None)
         if task in TASK_FRIEND:
-            route = FriendRoute(session, user_id, data)
+            route = FriendRoute(session, session_id, data)
             response = route.response()
         elif task in TASK_NOTIFICATION:
-            route = NotificationRoute(session, user_id, data)
+            route = NotificationRoute(session, session_id, data)
             response = route.response()
         elif task in TASK_USER:
             route = UserRoute(session, user_id, data)
@@ -83,9 +92,10 @@ if __name__ == '__main__':
             print('Connected to :', addr[0], ':', addr[1])
             write_log(addr[0], addr[1], type="connect")
             
-            sendall_str(connection, {"session_id": "01bf1e6a-1e1d-4242-9b8a-878267507983"})
+            session_id = "01bf1e6a-1e1d-4242-9b8a-878267507983"
+            sendall_str(connection, {"session_id": session_id})
 
-            start_new_thread(task, (connection, addr[0], addr[1]))
+            start_new_thread(task, (connection, session_id, addr[0], addr[1]))
         except KeyboardInterrupt:
             if connection:
                 connection.close()

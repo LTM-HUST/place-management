@@ -40,17 +40,23 @@ image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
 
 class NotificationFrame(CTkScrollableFrame):
 
-    def __init__(self, master):
+    def __init__(self, master, message=None):
         super().__init__(master)
+        
         self.session_id = master.session_id
+        self.notifications = None
+        if message:
+            self.notifications = message.get("content", None)
+        
         # General widgets
         self.label = CTkLabel(master=self, text='Notification Management', font=CTkFont(size=18, weight='bold'))
         self.label.grid(row=0, column=0, sticky='nw')
 
         # Notification list widget
-        for index, notification in enumerate(notifications):
-            notification_item = NotificationItem(master=self, notification=notification)
-            notification_item.grid(row=index+1, column=0, sticky='ew') # stretch frame to fill master
+        if self.notifications:
+            for index, notification in enumerate(self.notifications):
+                notification_item = NotificationItem(master=self, notification=notification)
+                notification_item.grid(row=index+1, column=0, sticky='ew') # stretch frame to fill master
 
 
 class NotificationItem(CTkFrame):

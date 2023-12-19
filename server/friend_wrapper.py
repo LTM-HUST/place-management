@@ -2,10 +2,12 @@ from models import *
 from typing import Union, Literal
 import json
 
+from session import get_user_from_session_id
+
 class FriendRoute():
-    def __init__(self, session, user_id: int, request: Union[dict, str]):
+    def __init__(self, session, session_id, request: Union[dict, str]):
         self.session = session
-        self.user_id = user_id
+        self.session_id = session_id
         
         if isinstance(request, str):
             request = json.loads(request)
@@ -40,7 +42,8 @@ class FriendRoute():
         }
             
         return res       
-        
+    
+    @get_user_from_session_id    
     def send_friend_request(self):
         content = {}
         if not self.validate_friend():
@@ -50,7 +53,7 @@ class FriendRoute():
             success = False
             code = 220
         else:
-            friend = Friend(source_friend_id=self.user_id, target_friend_id=self.friend_id, status="waiting")
+            friend = Friend(source_friend_id=self.user.id, target_friend_id=self.friend_id, status="waiting")
 
             self.session.add(friend)
             self.session.commit()
@@ -60,6 +63,7 @@ class FriendRoute():
             
         return success, code, content  
     
+    @get_user_from_session_id 
     def task_friend_request(self, type: Literal["accepted", "rejected"]):
         content = {}
         if not self.validate_friend():
@@ -74,6 +78,7 @@ class FriendRoute():
                 code = 221
         return success, code, content 
     
+    @get_user_from_session_id 
     def delete_friend(self):
         content = {}
         if not self.validate_friend():
@@ -91,17 +96,18 @@ class FriendRoute():
             code = 124
         return success, code, content
     
+    @get_user_from_session_id 
     def view_friend(self):
         success = True
         code = 130
         friend_source = self.session.query(Friend.target_friend_id, User.username) \
                                     .join(User, Friend.target_friend_id == User.id) \
-                                    .filter(Friend.source_friend_id == self.user_id, 
+                                    .filter(Friend.source_friend_id == self.user.id, 
                                             Friend.active, 
                                             Friend.status == "accepted").all()
         friend_target = self.session.query(Friend.source_friend_id, User.username) \
                                     .join(User, Friend.source_friend_id == User.id) \
-                                    .filter(Friend.target_friend_id == self.user_id, 
+                                    .filter(Friend.target_friend_id == self.user.id, 
                                             Friend.active, 
                                             Friend.status == "accepted").all()
         friend_list = friend_source + friend_target
@@ -111,12 +117,13 @@ class FriendRoute():
             
         return success, code, content
     
+    @get_user_from_session_id 
     def view_friend_request(self):
         success = True
         code = 131
         friend_request = self.session.query(Friend.source_friend_id, User.username) \
                                     .join(User, Friend.source_friend_id == User.id) \
-                                    .filter(Friend.target_friend_id == self.user_id, 
+                                    .filter(Friend.target_friend_id == self.user.id, 
                                             Friend.active, 
                                             Friend.status == "waiting").all()
         content = []
@@ -132,10 +139,11 @@ class FriendRoute():
         return True
     
     # Check if user in friend list or not
+    @get_user_from_session_id 
     def find_relationship(self):
         friend_source = self.session.query(Friend) \
                                     .filter(Friend.target_friend_id == self.friend_id, 
-                                            Friend.source_friend_id == self.user_id, 
+                                            Friend.source_friend_id == self.user.id, 
                                             Friend.active,
                                             Friend.status == "accepted").first()
         if friend_source:
@@ -143,7 +151,7 @@ class FriendRoute():
         
         friend_target =  self.session.query(Friend) \
                                     .filter(Friend.source_friend_id == self.friend_id, 
-                                            Friend.target_friend_id == self.user_id, 
+                                            Friend.target_friend_id == self.user.id, 
                                             Friend.active,
                                             Friend.status == "accepted").first()
         if friend_target:
@@ -152,10 +160,11 @@ class FriendRoute():
         return None
     
     # Check if user in friend request or not
+    @get_user_from_session_id 
     def update_request(self, type: Literal["accepted", "rejected"]):
         friend = self.session.query(Friend) \
                             .filter(Friend.source_friend_id == self.friend_id, 
-                                    Friend.target_friend_id == self.user_id, 
+                                    Friend.target_friend_id == self.user.id, 
                                     Friend.active, 
                                     Friend.status == "waiting").first() 
         if friend:

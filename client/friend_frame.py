@@ -1,6 +1,8 @@
 from customtkinter import *
 from PIL import Image
 
+from utils import recvall_str, sendall_str, send_friend_task
+
 friends = [
     {
         "id": 123,
@@ -24,8 +26,17 @@ image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
 
 class FriendFrame(CTkScrollableFrame):
 
-    def __init__(self, master):
+    def __init__(self, master, all_friend_message=None, request_friend_message=None):
         super().__init__(master)
+        
+        self.sock = master.sock
+        self.session_id = master.session_id
+        
+        self.all_friends = None
+        self.request_friends = None
+        if all_friend_message:
+            self.all_friends = all_friend_message.get("content", None)
+            self.request_friends = request_friend_message.get("content", None)
 
         # General widgets
         self.label = CTkLabel(master=self, text='Friend Management', font=CTkFont(size=18, weight='bold'))
@@ -42,20 +53,24 @@ class FriendFrame(CTkScrollableFrame):
         self.friend_request_tab.grid_columnconfigure(0, weight=1)
 
         # Friend list widget
-        for index, friend in enumerate(friends):
-            friend_item = FriendItem(master=self.friend_list_tab, friend=friend, request_friend=False)
-            friend_item.grid(row=index, column=0, sticky='ew') # stretch frame to fill master
+        if (self.all_friends):
+            for index, friend in enumerate(self.all_friends):
+                friend_item = FriendItem(master=self.friend_list_tab, friend=friend, request_friend=False)
+                friend_item.grid(row=index, column=0, sticky='ew') # stretch frame to fill master
 
         # Friend request widget
-        for index, friend in enumerate(friends):
-            friend_item = FriendItem(master=self.friend_request_tab, friend=friend, request_friend=True)
-            friend_item.grid(row=index, column=0, sticky='ew')
+        if (self.request_friends):
+            for index, friend in enumerate(self.request_friends):
+                friend_item = FriendItem(master=self.friend_request_tab, friend=friend, request_friend=True)
+                friend_item.grid(row=index, column=0, sticky='ew')
 
 
 class FriendItem(CTkFrame):
 
     def __init__(self, master, friend, request_friend=True):
         super().__init__(master)
+        self.sock = self.master.master.master.sock
+        self.session_id = self.master.master.master.session_id
         self.friend = friend
         self.request_friend = request_friend
 
@@ -100,13 +115,34 @@ class FriendItem(CTkFrame):
         print(f"Friend name: {self.friend['username']}")
         
     def accept_friend(self):
-        print(f"{self.friend['username']} is now your friend!")
-        self.destroy()
+        send_friend_task(self.sock, self.session_id, task="accept_friend_request", friend_id=self.friend["id"])
+        response = recvall_str(self.sock)
+        if len(response) == 0:
+            print("No connection!")
+        elif response.get("success"):
+            print(f"{self.friend['username']} is now your friend!")
+            self.destroy()
+        else:
+            print("Not successful")
         
     def reject_friend(self):
-        print(f"{self.friend['username']} is rejected!")
-        self.destroy()
+        send_friend_task(self.sock, self.session_id, task="reject_friend_request", friend_id=self.friend["id"])
+        response = recvall_str(self.sock)
+        if len(response) == 0:
+            print("No connection!")
+        elif response.get("success"):
+            print(f"{self.friend['username']} is rejected!")
+            self.destroy()
+        else:
+            print("Not successful")
         
     def delete_friend(self):
-        print(f"{self.friend['username']} is no longer in your friend list!")
-        self.destroy()
+        send_friend_task(self.sock, self.session_id, task="delete_friend", friend_id=self.friend["id"])
+        response = recvall_str(self.sock)
+        if len(response) == 0:
+            print("No connection!")
+        elif response.get("success"):
+            print(f"{self.friend['username']} is no longer in your friend list!")
+            self.destroy()
+        else:
+            print("Not successful")

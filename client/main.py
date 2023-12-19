@@ -5,7 +5,7 @@ from place_frame import PlaceFrame
 from friend_frame import FriendFrame
 from notification_frame import NotificationFrame
 import socket
-from utils import recvall_str, sendall_str
+from utils import recvall_str, sendall_str, send_friend_task, send_notification_task
 
 customtkinter.set_appearance_mode("light")
 
@@ -97,12 +97,21 @@ class App(customtkinter.CTk):
             self.place_frame.grid_forget()
             
         if name == "friend":
+            send_friend_task(self.sock, self.session_id, task="view_friend_list")
+            all_friend_message = recvall_str(self.sock)
+            send_friend_task(self.sock, self.session_id, task="view_friend_request")
+            request_friend_message = recvall_str(self.sock)
+            
+            self.friend_frame = FriendFrame(self, all_friend_message, request_friend_message)
+            self.friend_frame.grid_columnconfigure(0, weight=1)
             self.friend_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.friend_frame.grid_forget()
             
         if name == "notification":
-            self.notification_frame = NotificationFrame(self)
+            send_notification_task(self.sock, self.session_id)
+            message = recvall_str(self.sock)
+            self.notification_frame = NotificationFrame(self, message)
             self.notification_frame.grid_columnconfigure(0, weight=1)
             self.notification_frame.grid(row=0, column=1, sticky="nsew")
         else:
