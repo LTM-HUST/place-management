@@ -2,7 +2,7 @@ from models import *
 from typing import Union
 import json
 
-from session import session_manager
+from session import session_manager, get_user_from_session_id
 
 class UserRoute():
 
@@ -62,15 +62,15 @@ class UserRoute():
             user = User(username=self.username, password=self.password)
             self.session.add(user)
             self.session.commit()
-
             success = True
             code = 100
 
         return success, code, content
 
+    @get_user_from_session_id
     def login(self):
         content = {}
-        user_id = self.get_user_id()
+        user_id = self.user.id
 
         if not user_id:
             success = False
@@ -80,7 +80,6 @@ class UserRoute():
             code = 204
         else:
             session_id = session_manager.create_session(user_id)
-
             success = True
             code = 101
             content = {
@@ -98,8 +97,9 @@ class UserRoute():
 
         return success, code, content
 
+    @get_user_from_session_id
     def view_profile(self):
-        username = self.get_user_from_session().username
+        username = self.user.username
 
         success = True
         code = 150
@@ -109,6 +109,7 @@ class UserRoute():
 
         return success, code, content
 
+    @get_user_from_session_id
     def change_password(self):
         content = {}
 
@@ -116,7 +117,6 @@ class UserRoute():
             success = False
             code = 203
         else:
-            user = self.get_user_from_session()
             user.password = self.new_password
             self.session.commit()
             success = True
@@ -126,10 +126,4 @@ class UserRoute():
 
     def username_exist(self) -> bool:
         return self.session.query(User).filter(User.username == self.username).first() is not None
-
-    def get_user_from_session(self) -> User:
-        return self.session.query(User).filter(User.id == session_manager.get_user_id(self.session_id)).first()
-    
-    def get_user_id(self) -> int:
-        return self.session.query(User.id).filter(User.username == self.username).first()
 
