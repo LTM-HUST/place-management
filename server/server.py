@@ -82,6 +82,8 @@ if __name__ == '__main__':
 
             print('Connected to :', addr[0], ':', addr[1])
             write_log(addr[0], addr[1], type="connect")
+            
+            sendall_str(connection, {"session_id": "01bf1e6a-1e1d-4242-9b8a-878267507983"})
 
             start_new_thread(task, (connection, addr[0], addr[1]))
         except KeyboardInterrupt:

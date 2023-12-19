@@ -4,13 +4,17 @@ from PIL import Image
 from place_frame import PlaceFrame
 from friend_frame import FriendFrame
 from notification_frame import NotificationFrame
+import socket
+from utils import recvall_str, sendall_str
 
 customtkinter.set_appearance_mode("light")
 
 class App(customtkinter.CTk):
-    def __init__(self):
+    def __init__(self, sock, session_id):
         super().__init__()
-
+        
+        self.sock = sock
+        self.session_id = session_id
         self.title("Place Management")
         self.minsize(1300, 600)
         
@@ -98,6 +102,8 @@ class App(customtkinter.CTk):
             self.friend_frame.grid_forget()
             
         if name == "notification":
+            self.notification_frame = NotificationFrame(self)
+            self.notification_frame.grid_columnconfigure(0, weight=1)
             self.notification_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.notification_frame.grid_forget()
@@ -110,5 +116,18 @@ class App(customtkinter.CTk):
 
         
 if __name__ == "__main__":
-    app = App()
+    host = '127.0.0.1'
+    port = 8000
+    
+    s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    s.connect((host,port))
+    
+    data = recvall_str(s)
+    session_id = data.get("session_id", None)
+    if session_id is None:
+        print("No connection!")
+        s.close()
+        exit(1)
+    
+    app = App(s, session_id)
     app.mainloop()

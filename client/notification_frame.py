@@ -42,7 +42,7 @@ class NotificationFrame(CTkScrollableFrame):
 
     def __init__(self, master):
         super().__init__(master)
-
+        self.session_id = master.session_id
         # General widgets
         self.label = CTkLabel(master=self, text='Notification Management', font=CTkFont(size=18, weight='bold'))
         self.label.grid(row=0, column=0, sticky='nw')
@@ -85,4 +85,5 @@ class NotificationItem(CTkFrame):
         # Modify to render a new frame with the place details
         print(f"Message: {self.message}")
         print(f"Time: {self.message_time}")
+        print(self.master.session_id)
         
