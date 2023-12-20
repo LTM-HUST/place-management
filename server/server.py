@@ -4,7 +4,6 @@ import threading
 import json
 
 from sqlalchemy.orm import sessionmaker
-from session import session_manager
 
 from session import session_manager
 from utils import recvall_str, sendall_str, write_log
@@ -36,15 +35,18 @@ def echo(sock):
 
 
 def task(sock, session_id, ip, port):
-    user_id = None
+
     while True:
         try:
             data = recvall_str(sock)
         except ConnectionResetError as e:
             write_log(ip, port, type="close")
             print(f"{ip}:{port} has been disconnected!")
+            print(session_manager.sessions)
+            session_manager.delete_session(session_id)
+            print(session_manager.sessions)
             break
-            
+
         if not data:
             write_log(ip, port, type="close")
             break
@@ -59,7 +61,7 @@ def task(sock, session_id, ip, port):
             route = NotificationRoute(session, session_id, data)
             response = route.response()
         elif task in TASK_USER:
-            route = UserRoute(session, user_id, data)
+            route = UserRoute(session, session_id, data)
             response = route.response()
         else:
             response = {
@@ -91,8 +93,8 @@ if __name__ == '__main__':
 
             print('Connected to :', addr[0], ':', addr[1])
             write_log(addr[0], addr[1], type="connect")
-            
-            session_id = "01bf1e6a-1e1d-4242-9b8a-878267507983"
+
+            session_id = session_manager.create_session()
             sendall_str(connection, {"session_id": session_id})
 
             start_new_thread(task, (connection, session_id, addr[0], addr[1]))

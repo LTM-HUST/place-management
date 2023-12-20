@@ -4,11 +4,12 @@ import json
 
 from session import session_manager, get_user_from_session_id
 
+
 class UserRoute():
 
     def __init__(self, session, session_id, request: Union[dict, str]):
         self.session = session
-        self.session_id = "01bf1e6a-1e1d-4242-9b8a-878267507983"
+        self.session_id = session_id
 
         if isinstance(request, str):
             request = json.loads(request)
@@ -49,15 +50,15 @@ class UserRoute():
     def register(self):
         content = {}
 
-        if self.username_exist():
+        if not (self.username and self.password and self.retype_password):
+            success = False
+            code = 214
+        elif self.username_exist():
             success = False
             code = 201
         elif self.password != self.retype_password:
             success = False
             code = 203
-        elif not (self.username and self.password and self.retype_password):
-            success = False
-            code = 214
         else:
             user = User(username=self.username, password=self.password)
             self.session.add(user)
@@ -67,10 +68,9 @@ class UserRoute():
 
         return success, code, content
 
-    @get_user_from_session_id
     def login(self):
         content = {}
-        user_id = self.user.id
+        user_id = self.get_user_id_from_login_info()
 
         if not user_id:
             success = False
@@ -79,12 +79,9 @@ class UserRoute():
             success = False
             code = 204
         else:
-            session_id = session_manager.create_session(user_id)
+            session_manager.modify_session(self.session_id, user_id)
             success = True
             code = 101
-            content = {
-                "session_id": session_id
-            }
 
         return success, code, content
 
@@ -126,4 +123,6 @@ class UserRoute():
 
     def username_exist(self) -> bool:
         return self.session.query(User).filter(User.username == self.username).first() is not None
-
+    
+    def get_user_id_from_login_info(self) -> bool:
+        return self.session.query(User.id).filter(User.username == self.username, User.password == self.password).first()
