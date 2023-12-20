@@ -24,7 +24,7 @@ class App(customtkinter.CTk):
         
         # load images
         image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
-        self.logo_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "logo_app2.png")), size=(30, 30))
+        self.logo_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "logo_app.png")), size=(30, 30))
         self.icon_place = customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "map_trans.png")), size=(25, 27))
         self.icon_friend = customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "team-icon.png")), size=(25, 27))
         self.icon_notification = customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "notification_trans.png")), size=(25, 27))
