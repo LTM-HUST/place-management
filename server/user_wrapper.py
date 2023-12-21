@@ -89,7 +89,7 @@ class UserRoute():
 
     def logout(self):
         lock_session.acquire()
-        session_manager.delete_session(self.session_id)
+        session_manager.modify_session(self.session_id, None)
         lock_session.release()
 
         success = True
