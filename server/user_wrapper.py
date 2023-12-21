@@ -86,7 +86,7 @@ class UserRoute():
         return success, code, content
 
     def logout(self):
-        session_manager.delete_session(self.session_id)
+        session_manager.modify_session(self.session_id, None)
 
         success = True
         code = 102
