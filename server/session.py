@@ -2,6 +2,10 @@ import uuid
 
 from models import User
 
+import threading
+
+lock_session = threading.Lock()
+
 
 class SessionManager:
     def __init__(self):
@@ -19,10 +23,14 @@ class SessionManager:
         return self.sessions[session_id]
 
     def modify_session(self, session_id, user_id):
+        lock_session.acquire()
         self.sessions[session_id] = user_id
+        lock_session.release()
 
     def delete_session(self, session_id):
+        lock_session.acquire()
         del self.sessions[session_id]
+        lock_session.release()
 
 
 def get_user_from_session_id(func):
