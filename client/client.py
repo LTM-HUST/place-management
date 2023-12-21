@@ -8,6 +8,8 @@ from profile_frame import ProfileFrame
 from utils import recvall_str
 from PIL import Image
 
+from utils import recvall_str, sendall_str, send_friend_task, send_notification_task
+
 
 set_appearance_mode("light")
 image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
@@ -96,14 +98,22 @@ class MainFrame(CTkFrame):
         self.content_frame.grid(row=0, column=1, sticky='nsew')
 
     def friend_nav(self):
+        send_friend_task(self.sock, self.session_id, task="view_friend_list")
+        all_friend_message = recvall_str(self.sock)
+        send_friend_task(self.sock, self.session_id, task="view_friend_request")
+        request_friend_message = recvall_str(self.sock)
+        
         self.content_frame.grid_forget()
-        self.content_frame = FriendFrame(self)
+        self.content_frame = FriendFrame(self, all_friend_message, request_friend_message)
         self.content_frame.configure(fg_color='transparent')
         self.content_frame.grid(row=0, column=1, sticky='nsew')
 
     def notification_nav(self):
+        send_notification_task(self.sock, self.session_id)
+        message = recvall_str(self.sock)
+
         self.content_frame.grid_forget()
-        self.content_frame = NotificationFrame(self)
+        self.content_frame = NotificationFrame(self, message)
         self.content_frame.configure(fg_color='transparent')
         self.content_frame.grid(row=0, column=1, sticky='nsew')
 
