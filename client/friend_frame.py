@@ -31,6 +31,7 @@ class FriendFrame(CTkScrollableFrame):
         
         self.sock = master.sock
         self.session_id = master.session_id
+        self.columnconfigure(0, weight=1)
         
         self.all_friends = None
         self.request_friends = None

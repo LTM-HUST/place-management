@@ -1,6 +1,7 @@
 import customtkinter
 import os
 from PIL import Image
+from guest_frame import GuestFrame
 from place_frame import PlaceFrame
 from friend_frame import FriendFrame
 from notification_frame import NotificationFrame
@@ -17,10 +18,10 @@ class App(customtkinter.CTk):
         self.session_id = session_id
         self.title("Place Management")
         self.minsize(1300, 600)
-        
+    
         # set grid layout 1x2
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
+        # self.grid_rowconfigure(0, weight=1)
+        # self.grid_columnconfigure(1, weight=1)
         
         # load images
         image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
@@ -81,7 +82,10 @@ class App(customtkinter.CTk):
     
         
         # select default frame
-        self.select_frame_by_name("place")
+
+        self.frame = GuestFrame(self)
+        self.frame.grid(row=0, column=0, sticky="nsew")
+
         
     def select_frame_by_name(self, name):
         # set button color for selected button
