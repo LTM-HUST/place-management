@@ -2,7 +2,7 @@ from models import *
 from typing import Union
 import json
 
-from session import session_manager, get_user_from_session_id
+from session import session_manager, get_user_from_session_id, lock_session
 
 
 class UserRoute():
@@ -72,6 +72,7 @@ class UserRoute():
         content = {}
         user_id = self.get_user_id_from_login_info()
 
+        lock_session.acquire()
         if not user_id:
             success = False
             code = 202
@@ -82,11 +83,14 @@ class UserRoute():
             session_manager.modify_session(self.session_id, user_id)
             success = True
             code = 101
+        lock_session.release()
 
         return success, code, content
 
     def logout(self):
+        lock_session.acquire()
         session_manager.delete_session(self.session_id)
+        lock_session.release()
 
         success = True
         code = 102

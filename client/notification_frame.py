@@ -71,6 +71,7 @@ class NotificationItem(CTkFrame):
         # General configuration
         self.configure(fg_color=self.color)
         self.columnconfigure(0, weight=1) # stretch the first column to fill the whole remaining space
+        self.columnconfigure(1, weight=1)
         self.bind('<Leave>', self.on_leave)
         self.bind('<Enter>', self.on_enter)
         self.bind('<Button-1>', self.on_click)
