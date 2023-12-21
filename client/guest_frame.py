@@ -71,8 +71,7 @@ class LoginFrame(CTkFrame):
 
         resp = recvall_str(self.sock)
         if resp['success']:
-            self.master.master.frame.grid_forget()
-            self.master.master.select_frame_by_name("place")
+            self.master.master.main_nav()
         else:
             if resp['code'] == 202:
                 messagebox.showerror("Error", "Username or password is incorrect!")
