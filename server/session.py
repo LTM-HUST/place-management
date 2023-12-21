@@ -29,18 +29,16 @@ def get_user_from_session_id(func):
     def wrapper(self, *args, **kw):
         user_id = session_manager.get_user_id(self.session_id)
         if user_id is None:
-            return {
-                "success": False,
-                "code": 205,
-                "content": {}
-            }
+            success = False
+            code = 205
+            content = {}
+            return success, code, content
         self.user = self.session.query(User).filter(User.id == user_id).first()
         if not self.user:
-            return {
-                "success": False,
-                "code": 206,
-                "content": {}
-            }
+            success = False
+            code = 206
+            content = {}
+            return success, code, content
         return func(self, *args, **kw)
     return wrapper
 
