@@ -10,6 +10,8 @@ import json
 import datetime
 from zoneinfo import ZoneInfo
 
+data_server = ""
+
 PLACE_CATEGORY = [
   'accounting',
   'airport',
@@ -119,17 +121,24 @@ LOG_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'logging.tx
 
 def recvall_str(sock):
     # Helper function to recv all streaming data using \r\n
-    data = ""
-    condition = True
+    
+    global data_server
+    condition = True   
     while condition:
         packet = sock.recv(1024)
         if not packet:
-            return data
-        packet_str = packet.decode('utf8')
-        if packet_str.endswith("\r\n"):
             condition = False
-        data += packet.decode('utf8')
-    return str(data[:-2])
+        packet_str = packet.decode('utf8')
+        if "\r\n" in packet_str:
+            packet_str_list = packet_str.split("\r\n")
+            data_server += packet_str_list[0]
+            return_data = data_server
+            data_server = ""
+            for i in range(1, len(packet_str_list)):
+                data_server += packet_str_list[i]
+            break
+        data_server += packet.decode('utf8')
+    return json.loads(str(return_data))
 
 def sendall_str(sock, message: Union[dict, str]):
     if isinstance(message, dict):

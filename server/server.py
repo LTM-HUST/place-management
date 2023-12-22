@@ -51,7 +51,8 @@ def task(sock, session_id, ip, port):
             write_log(ip, port, type="close")
             break
         write_log(ip, port, type="request", data=data)
-        data = json.loads(data)
+        if isinstance(data, str):
+            data = json.loads(data)
         print(data)
         task = data.get("task", None)
         if task in TASK_FRIEND:

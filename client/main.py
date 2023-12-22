@@ -6,7 +6,7 @@ from place_frame import PlaceFrame
 from friend_frame import FriendFrame
 from notification_frame import NotificationFrame
 import socket
-from utils import recvall_str, sendall_str, send_friend_task, send_notification_task
+from utils import *
 
 customtkinter.set_appearance_mode("light")
 

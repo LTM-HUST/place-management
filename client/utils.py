@@ -5,19 +5,28 @@ import threading
 from typing import Literal, Union
 import json
 
+data_client = ""
+
 def recvall_str(sock):
     # Helper function to recv all streaming data using \r\n
-    data = ""
-    condition = True
+    
+    global data_client
+    condition = True   
     while condition:
         packet = sock.recv(1024)
         if not packet:
-            return data
-        packet_str = packet.decode('utf8')
-        if packet_str.endswith("\r\n"):
             condition = False
-        data += packet.decode('utf8')
-    return json.loads(str(data[:-2]))
+        packet_str = packet.decode('utf8')
+        if "\r\n" in packet_str:
+            packet_str_list = packet_str.split("\r\n")
+            data_client += packet_str_list[0]
+            return_data = data_client
+            data_client = ""
+            for i in range(1, len(packet_str_list)):
+                data_client += packet_str_list[i]
+            break
+        data_client += packet.decode('utf8')
+    return json.loads(str(return_data))
 
 def sendall_str(sock, message: Union[dict, str], session_id=None):
     if isinstance(message, dict):
