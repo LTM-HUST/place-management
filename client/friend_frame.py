@@ -1,5 +1,6 @@
 from customtkinter import *
 from tkinter import messagebox
+from tkinter.messagebox import askyesno
 from PIL import Image
 
 from utils import *
@@ -162,12 +163,15 @@ class FriendItem(CTkFrame):
             print("Not successful")
         
     def delete_friend(self):
-        send_friend_task(self.sock, self.session_id, task="delete_friend", friend_id=self.friend["id"])
-        response = recvall_str(self.sock)
-        if len(response) == 0:
-            print("No connection!")
-        elif response.get("success"):
-            print(f"{self.friend['username']} is no longer in your friend list!")
-            self.destroy()
-        else:
-            print("Not successful")
+        confirm = askyesno(title='confirmation',
+                    message=f'Are you sure that you want to unfriend {self.friend["username"]}?')
+        if confirm:
+            send_friend_task(self.sock, self.session_id, task="delete_friend", friend_id=self.friend["id"])
+            response = recvall_str(self.sock)
+            if len(response) == 0:
+                print("No connection!")
+            elif response.get("success"):
+                print(f"{self.friend['username']} is no longer in your friend list!")
+                self.destroy()
+            else:
+                print("Not successful")

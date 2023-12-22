@@ -1,41 +1,6 @@
 from customtkinter import *
 from PIL import Image
 
-notifications = [
-    {
-        "id": 123,
-        "place_id": 1,
-        "place_name": "Ho Tay",
-        "username": "Hieu",
-        "time": "15:00:00 1/12/2023",
-        "read": 0
-    },
-    {
-        "id": 124,
-        "place_id": 2,
-        "place_name": "Ho Guom",
-        "username": "Huy",
-        "time": "15:00:00 1/12/2023",
-        "read": 0
-    },
-    {
-        "id": 125,
-        "place_id": 3,
-        "place_name": "Ho Tay",
-        "username": "Hieu",
-        "time": "15:00:02 1/12/2023",
-        "read": 1
-    },
-    {
-        "id": 126,
-        "place_id": 4,
-        "place_name": "Ho Guom",
-        "username": "Hieu",
-        "time": "15:00:03 1/12/2023",
-        "read": 1
-    },
-]
-
 image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
 
 class NotificationFrame(CTkScrollableFrame):
