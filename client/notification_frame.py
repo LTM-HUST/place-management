@@ -51,7 +51,7 @@ class NotificationFrame(CTkScrollableFrame):
         
         # General widgets
         self.label = CTkLabel(master=self, text='Notification Management', font=CTkFont(size=18, weight='bold'))
-        self.label.grid(row=0, column=0, sticky='nw')
+        self.label.grid(row=0, column=0, pady=15, sticky='nw')
 
         # Notification list widget
         if self.notifications:

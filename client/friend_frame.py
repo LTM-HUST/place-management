@@ -1,9 +1,43 @@
 from customtkinter import *
+from tkinter import messagebox
 from PIL import Image
 
-from utils import recvall_str, sendall_str, send_friend_task
+from utils import *
+from response_code import code2message
 
 image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
+
+class AddFriendWindow(CTkToplevel):
+    def __init__(self, master):
+        super().__init__(master)
+        self.sock = master.sock
+        self.session_id = master.session_id
+        
+        self.friend_name = StringVar()
+        
+        self.title("Add New Friend")
+        self.geometry("400x300")
+        
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        
+        self.label_name = CTkLabel(master=self, text="Friend name: ", font=CTkFont(size=15, weight='bold'))
+        self.label_name.grid(row=0, column=0, padx=5, pady=15, sticky='w')
+        self.entry_name = CTkEntry(master=self, placeholder_text="Enter username of friend you want to add", 
+                                  width=250, textvariable=self.friend_name)
+        self.entry_name.grid(row=0, column=1, padx=5, pady=15, sticky='nswe')
+        
+        self.button_submit =  CTkButton(master=self, text='Send Request', width=10, height=30, command=self.add_friend)
+        self.button_submit.grid(row=1, column=0, columnspan=2, sticky="ns", pady=20)
+        
+    def add_friend(self):
+        send_friend_task(self.sock, self.session_id, task="send_friend_request", friend_name=self.friend_name.get())
+        response = recvall_str(self.sock)
+        if not response.get("success", None):
+            messagebox.showerror("Error", message=code2message(response.get("code", None)))
+        else:
+            messagebox.showinfo("Success", message=code2message(response.get("code", None)))
+            self.focus()
 
 class FriendFrame(CTkScrollableFrame):
 
@@ -23,6 +57,8 @@ class FriendFrame(CTkScrollableFrame):
         # General widgets
         self.label = CTkLabel(master=self, text='Friend Management', font=CTkFont(size=18, weight='bold'))
         self.label.grid(row=0, column=0, sticky='w')
+        self.button_add = CTkButton(master=self, text='Find New Friend', width=10, height=30, command=self.add_friend_toplevel)
+        self.button_add.grid(row=0, column=1, padx=5, pady=15, sticky='e')
 
         self.tabview = CTkTabview(master=self, anchor='w', height=20)
         self.tabview.add('Friend List')
@@ -33,6 +69,8 @@ class FriendFrame(CTkScrollableFrame):
         self.friend_list_tab.grid_columnconfigure(0, weight=1) # stretch the first column to fill the whole remaining space
         self.friend_request_tab = self.tabview.tab('Friend Request')
         self.friend_request_tab.grid_columnconfigure(0, weight=1)
+        
+        self.toplevel_add = None
 
         # Friend list widget
         if (self.all_friends):
@@ -45,7 +83,12 @@ class FriendFrame(CTkScrollableFrame):
             for index, friend in enumerate(self.request_friends):
                 friend_item = FriendItem(master=self.friend_request_tab, friend=friend, request_friend=True)
                 friend_item.grid(row=index, column=0, sticky='ew')
-
+    
+    def add_friend_toplevel(self):
+        if self.toplevel_add is None or not self.toplevel_add.winfo_exists():
+            self.toplevel_add = AddFriendWindow(self)  # create window if its None or destroyed
+        else:
+            self.toplevel_add.focus()
 
 class FriendItem(CTkFrame):
 

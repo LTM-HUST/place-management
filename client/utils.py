@@ -42,13 +42,16 @@ def send_friend_task(sock,
                      session_id,
                      task: Literal["send_friend_request", "accept_friend_request", "reject_friend_request",
                                    "delete_friend", "view_friend_list", "view_friend_request"],
-                     friend_id: int = None):
-    if task in ["send_friend_request", "accept_friend_request", "reject_friend_request", "delete_friend"] and friend_id is None:
+                     friend_id: int = None,
+                     friend_name: str = None):
+    if task in ["accept_friend_request", "reject_friend_request", "delete_friend"] and friend_id is None:
         raise ValueError("friend_id is required!")
+    if task in ["send_friend_request"] and friend_name is None:
+        raise ValueError("friend_name is required!")
     
     if task == "send_friend_request":
         content = {
-            "target_friend_id": friend_id
+            "target_friend_name": friend_name
         }
     elif task in ["accept_friend_request", "reject_friend_request"]:
         content = {

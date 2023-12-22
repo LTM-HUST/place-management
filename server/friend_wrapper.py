@@ -16,7 +16,7 @@ class FriendRoute():
         
     def response(self):
         if self.task == "send_friend_request":
-            self.friend_id = self.content.get("target_friend_id", None)
+            self.friend_name = self.content.get("target_friend_name", None)
             success, code, content = self.send_friend_request()
         elif self.task == "accept_friend_request":
             self.friend_id = self.content.get("source_friend_id", None)
@@ -46,20 +46,23 @@ class FriendRoute():
     @get_user_from_session_id    
     def send_friend_request(self):
         content = {}
-        if not self.validate_friend():
+        friend = self.validate_friend(use_name=True)
+        if not friend:
             success = False
             code = 206
-        elif self.find_relationship():
-            success = False
-            code = 220
         else:
-            friend = Friend(source_friend_id=self.user.id, target_friend_id=self.friend_id, status="waiting")
+            self.friend_id = friend.id
+            if self.find_relationship():
+                success = False
+                code = 220
+            else:
+                friend = Friend(source_friend_id=self.user.id, target_friend_id=self.friend_id, status="waiting")
 
-            self.session.add(friend)
-            self.session.commit()
-            
-            success = True
-            code = 120 
+                self.session.add(friend)
+                self.session.commit()
+                
+                success = True
+                code = 120 
             
         return success, code, content  
     
@@ -133,10 +136,14 @@ class FriendRoute():
         return success, code, content
 
     # Check if user exists or not
-    def validate_friend(self):
-        if self.session.query(User).filter(User.id == self.friend_id, User.active) is None:
+    def validate_friend(self, use_name=False):
+        if use_name:
+            friend = self.session.query(User).filter(User.username == self.friend_name, User.active).first()
+        else:
+            friend = self.session.query(User).filter(User.id == self.friend_id, User.active).first()
+        if friend is None:
             return False
-        return True
+        return friend
     
     # Check if user in friend list or not
     @get_user_from_session_id 
