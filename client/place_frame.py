@@ -145,6 +145,7 @@ class PlaceFrame(CTkScrollableFrame):
 
     def __init__(self, master):
         super().__init__(master) # init PlaceFrame (only once)
+        self.columnconfigure(0, weight=1) # stretch the first column to fill the whole remaining space
         self.current_frame = ViewAllPlaceFrame(master=self) # init current_frame as ViewAllPlaceFrame
         self.current_frame.grid(row=0, column=0, sticky='nsew') # stretch frame to fill master
         self.current_frame.grid_columnconfigure(0, weight=1) # stretch the first column to fill the whole remaining space
