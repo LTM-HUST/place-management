@@ -63,7 +63,7 @@ class ProfileFrame(CTkFrame):
         
         self.username = ""
         if user_message:
-            self.username = user_message.get("username", "")
+            self.username = user_message.get("content", dict()).get("username", "")
             
         # General widgets
         self.label = CTkLabel(master=self, text="Profile Management", font=CTkFont(size=18, weight='bold'))

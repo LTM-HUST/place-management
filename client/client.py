@@ -1,4 +1,5 @@
 from customtkinter import *
+from tkinter import messagebox
 import socket
 from guest_frame import GuestFrame
 from place_frame import PlaceFrame
@@ -8,7 +9,8 @@ from profile_frame import ProfileFrame
 from utils import recvall_str
 from PIL import Image
 
-from utils import recvall_str, sendall_str, send_friend_task, send_notification_task
+from utils import *
+from response_code import code2message
 
 
 set_appearance_mode("light")
@@ -99,29 +101,41 @@ class MainFrame(CTkFrame):
 
     def friend_nav(self):
         send_friend_task(self.sock, self.session_id, task="view_friend_list")
-        all_friend_message = recvall_str(self.sock)
+        all_friend_response = recvall_str(self.sock)
         send_friend_task(self.sock, self.session_id, task="view_friend_request")
-        request_friend_message = recvall_str(self.sock)
+        request_friend_response = recvall_str(self.sock)
         
-        self.content_frame.grid_forget()
-        self.content_frame = FriendFrame(self, all_friend_message, request_friend_message)
-        self.content_frame.configure(fg_color='transparent')
-        self.content_frame.grid(row=0, column=1, sticky='nsew')
+        if not all_friend_response.get("success", None):
+            messagebox.showerror("Error", message=code2message(all_friend_response.get("code", None)))
+        elif not request_friend_response.get("success", None):
+            messagebox.showerror("Error", message=code2message(request_friend_response.get("code", None)))
+        else:   
+            self.content_frame.grid_forget()
+            self.content_frame = FriendFrame(self, all_friend_response, request_friend_response)
+            self.content_frame.configure(fg_color='transparent')
+            self.content_frame.grid(row=0, column=1, sticky='nsew')
 
     def notification_nav(self):
         send_notification_task(self.sock, self.session_id)
-        message = recvall_str(self.sock)
-
-        self.content_frame.grid_forget()
-        self.content_frame = NotificationFrame(self, message)
-        self.content_frame.configure(fg_color='transparent')
-        self.content_frame.grid(row=0, column=1, sticky='nsew')
+        response = recvall_str(self.sock)
+        if not response.get("success", None):
+            messagebox.showerror("Error", message=code2message(response.get("code", None)))
+        else:
+            self.content_frame.grid_forget()
+            self.content_frame = NotificationFrame(self, response)
+            self.content_frame.configure(fg_color='transparent')
+            self.content_frame.grid(row=0, column=1, sticky='nsew')
 
     def profile_nav(self):
-        self.content_frame.grid_forget()
-        self.content_frame = ProfileFrame(self)
-        self.content_frame.configure(fg_color='transparent')
-        self.content_frame.grid(row=0, column=1, sticky='nsew')
+        send_profile_task(self.sock, self.session_id, task='view_profile')
+        response = recvall_str(self.sock)
+        if not response.get("success", None):
+            messagebox.showerror("Error", message=code2message(response.get("code", None)))
+        else:
+            self.content_frame.grid_forget()
+            self.content_frame = ProfileFrame(self, response)
+            self.content_frame.configure(fg_color='transparent')
+            self.content_frame.grid(row=0, column=1, sticky='nsew')
 
 
 if __name__ == "__main__":
