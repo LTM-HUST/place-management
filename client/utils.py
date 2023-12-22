@@ -85,11 +85,11 @@ def send_notification_task(sock,
     message = json.dumps(message_json)
     sendall_str(sock, message)
     
-def send_profile_task(sock, session_id, task: Literal["view_profile, change_password"], 
+def send_profile_task(sock, session_id, task: Literal["view_profile, change_password", "logout"], 
                       old_password: str = "", 
                       new_password: str = "", 
                       retype_password: str = ""):
-    if task == "view_profile":
+    if task in ["view_profile", "logout"]:
         content = {}
     if task == "change_password":
         content = {
