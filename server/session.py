@@ -13,6 +13,8 @@ class SessionManager:
 
     def create_session(self):
         session_id = str(uuid.uuid4())
+        while session_id in self.sessions.keys():
+            session_id = str(uuid.uuid4())
         self.sessions[session_id] = None
         return session_id
 
@@ -26,7 +28,7 @@ class SessionManager:
         self.sessions[session_id] = user_id
 
     def delete_session(self, session_id):
-        del self.sessions[session_id]
+        self.sessions.pop(session_id)
 
 
 def get_user_from_session_id(func):
