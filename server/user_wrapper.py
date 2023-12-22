@@ -113,8 +113,12 @@ class UserRoute():
     @get_user_from_session_id
     def change_password(self):
         content = {}
+        
+        if self.old_password != self.user.password:
+            success = False
+            code = 207
 
-        if self.new_password != self.retype_password:
+        elif self.new_password != self.retype_password:
             success = False
             code = 203
         else:
