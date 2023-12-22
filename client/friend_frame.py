@@ -3,25 +3,6 @@ from PIL import Image
 
 from utils import recvall_str, sendall_str, send_friend_task
 
-friends = [
-    {
-        "id": 123,
-        "username": "hieu"
-    },
-    {
-        "id": 124,
-        "username": "huy"
-    },
-    {
-        "id": 125,
-        "username": "hoang"
-    },
-    {
-        "id": 126,
-        "username": "tien"
-    },
-]
-
 image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
 
 class FriendFrame(CTkScrollableFrame):
@@ -43,7 +24,7 @@ class FriendFrame(CTkScrollableFrame):
         self.label = CTkLabel(master=self, text='Friend Management', font=CTkFont(size=18, weight='bold'))
         self.label.grid(row=0, column=0, sticky='w')
 
-        self.tabview = CTkTabview(master=self, anchor='w')
+        self.tabview = CTkTabview(master=self, anchor='w', height=20)
         self.tabview.add('Friend List')
         self.tabview.add('Friend Request')
         self.tabview.grid(row=1, column=0, columnspan=2, sticky='ew') # stretch frame to fill master

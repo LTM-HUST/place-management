@@ -45,6 +45,7 @@ class NotificationFrame(CTkScrollableFrame):
         
         self.session_id = master.session_id
         self.notifications = None
+        self.grid_columnconfigure(0, weight=1)
         if message:
             self.notifications = message.get("content", None)
         
