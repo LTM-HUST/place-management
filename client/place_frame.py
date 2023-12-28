@@ -1,21 +1,21 @@
 from customtkinter import *
 from PIL import Image
 
+from utils import *
+from tkinter import messagebox
+
+from response_code import code2message
+
 
 image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
-field_names = [
-    ('Name', 'name'),
-    ('Address', 'address'),
-    ('Tags', 'tags'),
-    ('Tagged friends', 'tagged_friends'),
-    ('Description', 'description')
-]
 
 
 class PlaceFrame(CTkScrollableFrame):
 
     def __init__(self, master, places_message, my_places_message, liked_places_message):
-        super().__init__(master)  # init PlaceFrame (only once)
+        super().__init__(master)
+        self.sock = master.sock
+        self.session_id = master.session_id
         self.places_message = places_message
         self.my_places_message = my_places_message
         self.liked_places_message = liked_places_message
@@ -36,11 +36,16 @@ class PlaceFrame(CTkScrollableFrame):
         self.current_frame.grid(row=0, column=0, sticky='nsew')
         self.current_frame.grid_columnconfigure(0, weight=1)
 
-    def view_place_detail(self, place, owned):
-        self.current_frame.destroy()
-        self.current_frame = ViewPlaceDetailFrame(master=self, place=place, owned=owned)
-        self.current_frame.grid(row=0, column=0, sticky='nsew')
-        self.current_frame.grid_columnconfigure(0, weight=1)
+    def view_place_detail(self, id, owned):
+        send_place_task(self.sock, self.session_id, task="view_place_detail", id=id)
+        response = recvall_str(self.sock)
+        if not response.get("success", None):
+            messagebox.showerror("Error", message=code2message(response.get("code", None)))
+        else:
+            self.current_frame.destroy()
+            self.current_frame = ViewPlaceDetailFrame(master=self, place=response['content'], owned=owned)
+            self.current_frame.grid(row=0, column=0, sticky='nsew')
+            self.current_frame.grid_columnconfigure(0, weight=1)
 
     def create_place(self):
         self.current_frame.destroy()
@@ -108,6 +113,8 @@ class PlaceItem(CTkFrame):
 
     def __init__(self, master, place, owned=True):
         super().__init__(master)
+        self.place = place
+        self.owned = owned
 
         # General configuration
         self.columnconfigure(0, weight=1)
@@ -121,12 +128,12 @@ class PlaceItem(CTkFrame):
         self.delete_icon = CTkImage(Image.open(os.path.join(image_path, 'delete_icon.png')), size=(30, 30))
 
         # Widgets
-        place_name_label = CTkLabel(master=self, text=place['name'], wraplength=1000, justify='left')
+        place_name_label = CTkLabel(master=self, text=self.place['name'], wraplength=1000, justify='left')
         place_name_label.grid(row=0, column=0, sticky='w')
-        place_name_addr = CTkLabel(master=self, text=place['description'], wraplength=1000, justify='left')
+        place_name_addr = CTkLabel(master=self, text=self.place['description'], wraplength=1000, justify='left')
         place_name_addr.grid(row=1, column=0, sticky='w')
 
-        if owned:
+        if self.owned:
             edit_button = CTkButton(master=self, text='', image=self.edit_icon, width=30, height=30, fg_color='transparent')
             edit_button.grid(row=0, column=1, rowspan=2, sticky='e')
             delete_button = CTkButton(master=self, text='', image=self.delete_icon, width=30, height=30, fg_color='transparent')
@@ -143,7 +150,7 @@ class PlaceItem(CTkFrame):
         Call view_place_detail method from a PlaceFrame instance.
         It goes from PlaceItem(self) -> tab in Tabview -> Tabview -> ViewAllPlaceFrame -> PlaceFrame
         """
-        self.master.master.master.master.view_place_detail(self.place.id, self.owned)
+        self.master.master.master.master.view_place_detail(self.place['id'], self.owned)
 
 
 class ViewPlaceDetailFrame(CTkFrame):
@@ -166,14 +173,33 @@ class ViewPlaceDetailFrame(CTkFrame):
             self.edit_button = CTkButton(master=self, text='', image=self.edit_icon, width=30, height=30, fg_color='transparent')
             self.edit_button.grid(row=0, column=1, sticky='e')
 
-        for index, field in enumerate(field_names):
-            field_label = CTkLabel(master=self, text=field[0])
-            field_label.grid(row=2*(index+1)-1, column=0, sticky='w')
-            field_value = CTkLabel(master=self, text=place[field[1]], wraplength=1000, justify='left')
-            field_value.grid(row=2*(index+1), column=0, sticky='w', pady=(0, 20))
+        name_label = CTkLabel(master=self, text='Name')
+        name_label.grid(row=1, column=0, sticky='w')
+        name_value = CTkLabel(master=self, text=place['name'], wraplength=1000, justify='left')
+        name_value.grid(row=2, column=0, sticky='w', pady=(0, 20))
+
+        address_label = CTkLabel(master=self, text='Address')
+        address_label.grid(row=3, column=0, sticky='w')
+        address_value = CTkLabel(master=self, text=place['address'], wraplength=1000, justify='left')
+        address_value.grid(row=4, column=0, sticky='w', pady=(0, 20))
+
+        tags_label = CTkLabel(master=self, text='Tags')
+        tags_label.grid(row=5, column=0, sticky='w')
+        tags_value = CTkLabel(master=self, text=', '.join(category['category'] for category in place['categories']), wraplength=1000, justify='left')
+        tags_value.grid(row=6, column=0, sticky='w', pady=(0, 20))
+
+        tagged_friends_label = CTkLabel(master=self, text='Tagged friends')
+        tagged_friends_label.grid(row=7, column=0, sticky='w')
+        tagged_friends_value = CTkLabel(master=self, text=', '.join(friends['username'] for friends in place['tagged_friends']), wraplength=1000, justify='left')
+        tagged_friends_value.grid(row=8, column=0, sticky='w', pady=(0, 20))
+
+        description_label = CTkLabel(master=self, text='Description')
+        description_label.grid(row=9, column=0, sticky='w')
+        description_value = CTkLabel(master=self, text=place['description'], wraplength=1000, justify='left')
+        description_value.grid(row=10, column=0, sticky='w', pady=(0, 20))
 
         self.back_button = CTkButton(master=self, text='Back', width=50, height=30, fg_color='gray')
-        self.back_button.grid(row=2*len(field_names)+1, column=1, sticky='e')
+        self.back_button.grid(row=11, column=1, sticky='e')
         self.back_button.bind('<Button-1>', self.on_back_button_click)
 
     def on_back_button_click(self, event):
@@ -181,26 +207,26 @@ class ViewPlaceDetailFrame(CTkFrame):
         self.master.view_all_places()
 
 
-class CreatePlaceFrame(CTkFrame):
+# class CreatePlaceFrame(CTkFrame):
 
-    def __init__(self, master):
-        super().__init__(master)
+#     def __init__(self, master):
+#         super().__init__(master)
 
-        # General configuration
-        self.columnconfigure(0, weight=1)
+#         # General configuration
+#         self.columnconfigure(0, weight=1)
 
-        # Widgets
-        self.label = CTkLabel(master=self, text='Create place', font=CTkFont(size=18, weight='bold'))
-        self.label.grid(row=0, column=0, sticky='w', pady=(0, 20))
+#         # Widgets
+#         self.label = CTkLabel(master=self, text='Create place', font=CTkFont(size=18, weight='bold'))
+#         self.label.grid(row=0, column=0, sticky='w', pady=(0, 20))
 
-        for index, field in enumerate(field_names):
-            field_label = CTkLabel(master=self, text=field[0])
-            field_label.grid(row=2*(index+1)-1, column=0, columnspan=3, sticky='w')
-            field_value = CTkEntry(master=self)
-            field_value.grid(row=2*(index+1), column=0, columnspan=3, sticky='we', pady=(0, 20))
+#         for index, field in enumerate(field_names):
+#             field_label = CTkLabel(master=self, text=field[0])
+#             field_label.grid(row=2*(index+1)-1, column=0, columnspan=3, sticky='w')
+#             field_value = CTkEntry(master=self)
+#             field_value.grid(row=2*(index+1), column=0, columnspan=3, sticky='we', pady=(0, 20))
 
-        self.submit_button = CTkButton(master=self, text='Submit', width=50, height=30, fg_color='gray')
-        self.submit_button.grid(row=2*len(field_names)+1, column=1, padx=(0, 20), sticky='e')
+#         self.submit_button = CTkButton(master=self, text='Submit', width=50, height=30, fg_color='gray')
+#         self.submit_button.grid(row=2*len(field_names)+1, column=1, padx=(0, 20), sticky='e')
 
-        self.cancel_button = CTkButton(master=self, text='Cancel', width=50, height=30, fg_color='gray')
-        self.cancel_button.grid(row=2*len(field_names)+1, column=2, sticky='e')
+#         self.cancel_button = CTkButton(master=self, text='Cancel', width=50, height=30, fg_color='gray')
+#         self.cancel_button.grid(row=2*len(field_names)+1, column=2, sticky='e')

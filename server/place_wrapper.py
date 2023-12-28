@@ -3,6 +3,7 @@ from typing import Union
 import json
 
 from session import session_manager, get_user_from_session_id
+from sqlalchemy.orm import joinedload
 
 
 class PlaceRoute():
@@ -99,5 +100,40 @@ class PlaceRoute():
                 "name": place.name,
                 "description": place.description
             })
+
+        return success, code, content
+
+    @get_user_from_session_id
+    def view_place_detail(self, id):
+        place = self.session.query(Place).options(
+            joinedload(Place.tag), joinedload(Place.category)
+        ).filter(Place.id == id, Place.active).first()
+
+        categories = [{"id": category.id, "category": category.category} for category in place.category]
+        tagged_friends = []
+        for tag in place.tag:
+            friend_id = tag.friend_id
+            friend_as_user = self.session.query(User).filter(User.id == friend_id, User.active).first()
+            tagged_friends.append({
+                "id": friend_as_user.id,
+                "username": friend_as_user.username
+            })
+
+        if place:
+            success = True
+            code = 113
+            content = {
+                "id": place.id,
+                "name": place.name,
+                "address": place.address,
+                "description": place.description,
+                "categories": categories,
+                "tagged_friends": tagged_friends
+            }
+
+        else:
+            success = False
+            code = 216
+            content = {}
 
         return success, code, content
