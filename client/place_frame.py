@@ -207,26 +207,81 @@ class ViewPlaceDetailFrame(CTkFrame):
         self.master.view_all_places()
 
 
-# class CreatePlaceFrame(CTkFrame):
+class CreatePlaceFrame(CTkFrame):
 
-#     def __init__(self, master):
-#         super().__init__(master)
+    def __init__(self, master):
+        super().__init__(master)
+        self.sock = master.sock
+        self.session_id = master.session_id
+        self.name_var = StringVar()
+        self.address_var = StringVar()
+        self.description_var = StringVar()
+        self.toplevel_window = None
 
-#         # General configuration
-#         self.columnconfigure(0, weight=1)
+        # General configuration
+        self.columnconfigure(0, weight=1)
 
-#         # Widgets
-#         self.label = CTkLabel(master=self, text='Create place', font=CTkFont(size=18, weight='bold'))
-#         self.label.grid(row=0, column=0, sticky='w', pady=(0, 20))
+        # Widgets
+        self.label = CTkLabel(master=self, text='Create place', font=CTkFont(size=18, weight='bold'))
+        self.label.grid(row=0, column=0, sticky='w', pady=(0, 20))
 
-#         for index, field in enumerate(field_names):
-#             field_label = CTkLabel(master=self, text=field[0])
-#             field_label.grid(row=2*(index+1)-1, column=0, columnspan=3, sticky='w')
-#             field_value = CTkEntry(master=self)
-#             field_value.grid(row=2*(index+1), column=0, columnspan=3, sticky='we', pady=(0, 20))
+        self.name_label = CTkLabel(master=self, text='Name')
+        self.name_label.grid(row=1, column=0, sticky='w')
+        self.name_entry = CTkEntry(master=self, textvariable=self.name_var)
+        self.name_entry.grid(row=2, column=0, columnspan=3, sticky='we', pady=(0, 20))
 
-#         self.submit_button = CTkButton(master=self, text='Submit', width=50, height=30, fg_color='gray')
-#         self.submit_button.grid(row=2*len(field_names)+1, column=1, padx=(0, 20), sticky='e')
+        self.address_label = CTkLabel(master=self, text='Address')
+        self.address_label.grid(row=3, column=0, sticky='w')
+        self.address_entry = CTkEntry(master=self, textvariable=self.address_var)
+        self.address_entry.grid(row=4, column=0, columnspan=3, sticky='we', pady=(0, 20))
 
-#         self.cancel_button = CTkButton(master=self, text='Cancel', width=50, height=30, fg_color='gray')
-#         self.cancel_button.grid(row=2*len(field_names)+1, column=2, sticky='e')
+        self.tags_label = CTkLabel(master=self, text='Tags')
+        self.tags_label.grid(row=5, column=0, sticky='w')
+        self.tags_add_button = CTkButton(master=self, text='Modify', width=50, height=30, fg_color='gray', command=self.tag_toplevel)
+        self.tags_add_button.grid(row=5, column=2, sticky='e')
+        self.tags_entry = CTkEntry(master=self, state='disabled')
+        self.tags_entry.grid(row=6, column=0, columnspan=3, sticky='we', pady=(0, 20))
+
+        self.tagged_friends_label = CTkLabel(master=self, text='Tagged friends')
+        self.tagged_friends_label.grid(row=7, column=0, sticky='w')
+        self.tagged_friends_add_button = CTkButton(master=self, text='Modify', width=50, height=30, fg_color='gray', command=self.friend_toplevel)
+        self.tagged_friends_add_button.grid(row=7, column=2, sticky='e')
+        self.tagged_friends_entry = CTkEntry(master=self, state='disabled')
+        self.tagged_friends_entry.grid(row=8, column=0, columnspan=3, sticky='we', pady=(0, 20))
+
+        self.description_label = CTkLabel(master=self, text='Description')
+        self.description_label.grid(row=9, column=0, sticky='w')
+        self.description_entry = CTkEntry(master=self, textvariable=self.description_var)
+        self.description_entry.grid(row=10, column=0, columnspan=3, sticky='we', pady=(0, 20))
+
+        self.submit_button = CTkButton(master=self, text='Submit', width=50, height=30, fg_color='gray')
+        self.submit_button.grid(row=11, column=1, padx=(0, 20), sticky='e')
+
+        self.cancel_button = CTkButton(master=self, text='Cancel', width=50, height=30, fg_color='gray')
+        self.cancel_button.grid(row=11, column=2, sticky='e')
+
+    def tag_toplevel(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = TagWindow(self)  # create window if its None or destroyed
+        else:
+            self.toplevel_window.focus()  # if window exists focus it
+
+    def friend_toplevel(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = FriendWindow(self)
+        else:
+            self.toplevel_window.focus()
+
+class TagWindow(CTkToplevel):
+    def __init__(self, master):
+        super().__init__(master)
+
+        self.title('Modify category tags')
+        self.geometry('300x300')
+
+class FriendWindow(CTkToplevel):
+    def __init__(self, master):
+        super().__init__(master)
+
+        self.title('Modify friend tags')
+        self.geometry('300x300')
