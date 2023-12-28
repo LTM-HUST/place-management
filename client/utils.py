@@ -15,6 +15,7 @@ def recvall_str(sock):
     condition = True
     while condition:
         packet = sock.recv(1024)
+        print(packet)
         if not packet:
             condition = False
         packet_str = packet.decode('utf8')

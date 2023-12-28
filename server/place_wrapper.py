@@ -55,8 +55,8 @@ class PlaceRoute():
         my_places = self.session.query(Place.id, Place.name, Place.description) \
             .filter(Place.user_id == self.user.id, Place.active).all()
         liked_places = self.session.query(Place.id, Place.name, Place.description) \
-            .join(Tag, Tag.friend_id == self.user.id) \
-            .filter(Tag.liked, Place.active).all()
+            .join(Tag, Place.tag) \
+            .filter(Tag.friend_id == self.user.id, Tag.liked, Tag.active, Place.active).all()
         places = my_places + liked_places
         for place in places:
             content.append({
@@ -64,5 +64,40 @@ class PlaceRoute():
                 "name": place.name,
                 "description": place.description
             })
-        
+
+        return success, code, content
+
+    @get_user_from_session_id
+    def view_my_places(self):
+        success = True
+        code = 111
+        content = []
+
+        places = self.session.query(Place.id, Place.name, Place.description) \
+            .filter(Place.user_id == self.user.id, Place.active).all()
+        for place in places:
+            content.append({
+                "id": place.id,
+                "name": place.name,
+                "description": place.description
+            })
+
+        return success, code, content
+
+    @get_user_from_session_id
+    def view_liked_places(self):
+        success = True
+        code = 112
+        content = []
+
+        places = self.session.query(Place.id, Place.name, Place.description) \
+            .join(Tag, Place.tag) \
+            .filter(Tag.friend_id == self.user.id, Tag.liked, Tag.active, Place.active).all()
+        for place in places:
+            content.append({
+                "id": place.id,
+                "name": place.name,
+                "description": place.description
+            })
+
         return success, code, content
