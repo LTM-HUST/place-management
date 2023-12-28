@@ -7,11 +7,12 @@ import json
 
 data_client = ""
 
+
 def recvall_str(sock):
     # Helper function to recv all streaming data using \r\n
-    
+
     global data_client
-    condition = True   
+    condition = True
     while condition:
         packet = sock.recv(1024)
         if not packet:
@@ -28,16 +29,18 @@ def recvall_str(sock):
         data_client += packet.decode('utf8')
     return json.loads(str(return_data))
 
+
 def sendall_str(sock, message: Union[dict, str], session_id=None):
     if isinstance(message, dict):
         if session_id and message.get("session_id", None):
             message["session_id"] = session_id
         message = json.dumps(message)
-    
+
     if not message.endswith("\r\n"):
         message += "\r\n"
     sock.sendall(message.encode("utf-8"))
-    
+
+
 def send_friend_task(sock,
                      session_id,
                      task: Literal["send_friend_request", "accept_friend_request", "reject_friend_request",
@@ -63,30 +66,103 @@ def send_friend_task(sock,
         }
     else:
         content = {}
-        
+
     message_json = {
         "session_id": session_id,
         "task": task,
         "content": content
     }
-    
+
     message = json.dumps(message_json)
     sendall_str(sock, message)
-    
+
+
 def send_notification_task(sock,
-                            session_id,
-                            task: Literal["view_notification_list"] = "view_notification_list"):
+                           session_id,
+                           task: Literal["view_notification_list"] = "view_notification_list"):
     if task in ["view_notification_list"]:
         content = {}
-        
+
     message_json = {
         "session_id": session_id,
         "task": task,
         "content": content
     }
-    
+
+    message = json.dumps(message_json)
+
+
+def send_user_task(sock, session_id,
+                   task: Literal["register", "login", "logout", "view_profile", "change_password"],
+                   username=None, password=None, retype_password=None, old_password=None, new_password=None):
+
+    if task == "register":
+        if not (username and password and retype_password):
+            raise ValueError("username, password and retype_password are required!")
+        content = {
+            "username": username,
+            "password": password,
+            "retype_password": retype_password
+        }
+    elif task == "login":
+        if not (username and password):
+            raise ValueError("username and password are required!")
+        content = {
+            "username": username,
+            "password": password
+        }
+    elif task in ["logout", "view_profile"]:
+        content = {}
+    elif task == "change_password":
+        if not (old_password and new_password and retype_password):
+            raise ValueError("old_password, new_password and retype_password are required!")
+        content = {
+            "old_password": old_password,
+            "new_password": new_password,
+            "retype_password": retype_password
+        }
+
+    message_json = {
+        "session_id": session_id,
+        "task": task,
+        "content": content
+    }
+
     message = json.dumps(message_json)
     sendall_str(sock, message)
+
+
+def send_place_task(sock, session_id,
+                    task: Literal["view_places", "view_my_places", "view_liked_places", "view_place_detail",
+                                  "create_place", "update_place", "delete_place", "like_friend_place"],
+                    id=None):
+
+    if task in ["view_places", "view_my_places", "view_liked_places"]:
+        content = {}
+    elif task in ["view_place_detail"]:
+        if not id:
+            raise ValueError("id is required!")
+        content = {
+            "id": id
+        }
+    elif task in ["create_place", "update_place"]:
+        pass
+    elif task in ["delete_place", "like_friend_place"]:
+        if not id:
+            raise ValueError("id is required!")
+        content = {
+            "id": id
+        }
+
+    message_json = {
+        "session_id": session_id,
+        "task": task,
+        "content": content
+    }
+
+    message = json.dumps(message_json)
+    sendall_str(sock, message)
+
     
 def send_profile_task(sock, session_id, task: Literal["view_profile, change_password", "logout"], 
                       old_password: str = "", 

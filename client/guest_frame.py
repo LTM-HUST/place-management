@@ -1,6 +1,6 @@
 from customtkinter import *
 from tkinter import messagebox
-from utils import recvall_str, sendall_str
+from utils import recvall_str, sendall_str, send_user_task
 
 
 class GuestFrame(CTkFrame):
@@ -34,7 +34,7 @@ class LoginFrame(CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         self.sock = master.sock
-        self.sesssion_id = master.session_id
+        self.session_id = master.session_id
         self.username_var = StringVar()
         self.password_var = StringVar()
         self.grid_columnconfigure(0, weight=1)
@@ -60,14 +60,7 @@ class LoginFrame(CTkFrame):
         self.register_label.grid(row=6, column=0, sticky='we')
 
     def login(self):
-        message = {
-            "task": "login",
-            "content": {
-                "username": self.username_var.get(),
-                "password": self.password_var.get()
-            }
-        }
-        sendall_str(self.sock, message, self.sesssion_id)
+        send_user_task(self.sock, self.session_id, task="login", username=self.username_var.get(), password=self.password_var.get())
 
         resp = recvall_str(self.sock)
         if resp['success']:
@@ -87,7 +80,7 @@ class RegisterFrame(CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         self.sock = master.sock
-        self.sesssion_id = master.session_id
+        self.session_id = master.session_id
         self.username_var = StringVar()
         self.password_var = StringVar()
         self.retype_password_var = StringVar()
@@ -119,15 +112,8 @@ class RegisterFrame(CTkFrame):
         self.register_label.grid(row=8, column=0, sticky='we')
 
     def register(self):
-        message = {
-            "task": "register",
-            "content": {
-                "username": self.username_var.get(),
-                "password": self.password_var.get(),
-                "retype_password": self.retype_password_var.get()
-            }
-        }
-        sendall_str(self.sock, message, self.sesssion_id)
+        send_user_task(self.sock, self.session_id, task="register",
+                       username=self.username_var.get(), password=self.password_var.get(), retype_password=self.retype_password_var.get())
 
         resp = recvall_str(self.sock)
         if resp['success']:

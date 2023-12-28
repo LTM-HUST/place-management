@@ -130,8 +130,8 @@ class UserRoute():
         return success, code, content
 
     def username_exist(self) -> bool:
-        return self.session.query(User).filter(User.username == self.username).first() is not None
+        return self.session.query(User).filter(User.username == self.username, User.active).first() is not None
     
     def get_user_id_from_login_info(self) -> int:
-        user = self.session.query(User.id).filter(User.username == self.username, User.password == self.password).first()
+        user = self.session.query(User.id).filter(User.username == self.username, User.password == self.password, User.active).first()
         return user.id if user else None

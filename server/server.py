@@ -13,11 +13,14 @@ from models import *
 from friend_wrapper import FriendRoute
 from notification_wrapper import NotificationRoute
 from user_wrapper import UserRoute
+from place_wrapper import PlaceRoute
 
 TASK_FRIEND = ["send_friend_request", "accept_friend_request", "reject_friend_request",
                "delete_friend", "view_friend_list", "view_friend_request"]
 TASK_NOTIFICATION = ["view_notification_list"]
 TASK_USER = ["register", "login", "logout", "view_profile", "change_password"]
+TASK_PLACE = ["view_places", "view_my_places", "view_liked_places", "view_place_detail",
+              "create_place", "update_place", "delete_place", "like_friend_place"]
 
 SessionLocal = sessionmaker(bind=engine)
 session = SessionLocal()
@@ -63,6 +66,9 @@ def task(sock, session_id, ip, port):
             response = route.response()
         elif task in TASK_USER:
             route = UserRoute(session, session_id, data)
+            response = route.response()
+        elif task in TASK_PLACE:
+            route = PlaceRoute(session, session_id, data)
             response = route.response()
         else:
             response = {

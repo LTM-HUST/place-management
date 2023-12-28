@@ -143,8 +143,12 @@ field_names = [
 
 class PlaceFrame(CTkScrollableFrame):
 
-    def __init__(self, master):
+    def __init__(self, master, places_message = None, my_places_message = None, liked_places_message = None):
         super().__init__(master) # init PlaceFrame (only once)
+        self.places_message = places_message
+        self.my_places_message = my_places_message
+        self.liked_places_message = liked_places_message
+
         self.columnconfigure(0, weight=1) # stretch the first column to fill the whole remaining space
         self.current_frame = ViewAllPlaceFrame(master=self) # init current_frame as ViewAllPlaceFrame
         self.current_frame.grid(row=0, column=0, sticky='nsew') # stretch frame to fill master
@@ -207,6 +211,7 @@ class ViewAllPlaceFrame(CTkFrame):
         self.liked_places_tab.grid_columnconfigure(0, weight=1)
 
         # All places widgets
+        places = master.places_message.get("content", None)
         for index, place in enumerate(places):
             place_item = PlaceItem(master=self.all_places_tab, place=place, owned=False)
             place_item.grid(row=index, column=0, sticky='ew')
@@ -230,8 +235,6 @@ class PlaceItem(CTkFrame):
 
     def __init__(self, master, place, owned=True):
         super().__init__(master)
-        self.place = place
-        self.owned = owned
 
         # General configuration
         self.columnconfigure(0, weight=1)
