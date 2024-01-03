@@ -58,6 +58,22 @@ class PlaceFrame(CTkScrollableFrame):
         self.current_frame.grid(row=0, column=0, sticky='nsew')
         self.current_frame.grid_columnconfigure(0, weight=1)
 
+    def update_place(self, id):
+        send_place_task(self.sock, self.session_id, task="view_place_detail", id=id)
+        response = recvall_str(self.sock)
+        send_place_task(self.sock, self.session_id, task="view_categories")
+        categories_resp = recvall_str(self.sock)
+        send_friend_task(self.sock, self.session_id, task="view_friend_list")
+        friends_resp = recvall_str(self.sock)
+
+        if not response.get("success", None):
+            messagebox.showerror("Error", message=code2message(response.get("code", None)))
+        else:
+            self.current_frame.destroy()
+            self.current_frame = UpdatePlaceFrame(master=self, place=response['content'], categories=categories_resp['content'], friends=friends_resp['content'])
+            self.current_frame.grid(row=0, column=0, sticky='nsew')
+            self.current_frame.grid_columnconfigure(0, weight=1)
+
 
 class ViewAllPlaceFrame(CTkFrame):
 
@@ -143,7 +159,7 @@ class PlaceItem(CTkFrame):
         place_name_addr.grid(row=1, column=0, sticky='w')
 
         if self.owned:
-            edit_button = CTkButton(master=self, text='', image=self.edit_icon, width=30, height=30, fg_color='transparent')
+            edit_button = CTkButton(master=self, text='', image=self.edit_icon, width=30, height=30, fg_color='transparent', command=self.on_edit_button_click)
             edit_button.grid(row=0, column=1, rowspan=2, sticky='e')
             delete_button = CTkButton(master=self, text='', image=self.delete_icon, width=30, height=30, fg_color='transparent', command=self.on_delete_button_click)
             delete_button.grid(row=0, column=2, rowspan=2, sticky='e')
@@ -161,9 +177,11 @@ class PlaceItem(CTkFrame):
         """
         self.master.master.master.master.view_place_detail(self.place['id'], self.owned)
 
+    def on_edit_button_click(self):
+        self.master.master.master.master.update_place(self.place['id'])
+
     def on_delete_button_click(self):
-        messagebox.askokcancel("Delete place", "Are you sure you want to delete this place?"
-                               , command=send_place_task(self.sock, self.session_id, task="delete_place", id=self.place['id']))
+        messagebox.askokcancel("Delete place", "Are you sure you want to delete this place?", command=send_place_task(self.sock, self.session_id, task="delete_place", id=self.place['id']))
         response = recvall_str(self.sock)
         if not response.get("success", None):
             messagebox.showerror("Error", message=code2message(response.get("code", None)))
@@ -190,7 +208,7 @@ class ViewPlaceDetailFrame(CTkFrame):
         self.label.grid(row=0, column=0, sticky='w', pady=(0, 20))
 
         if owned:
-            self.edit_button = CTkButton(master=self, text='', image=self.edit_icon, width=30, height=30, fg_color='transparent')
+            self.edit_button = CTkButton(master=self, text='', image=self.edit_icon, width=30, height=30, fg_color='transparent', command=self.on_edit_button_click)
             self.edit_button.grid(row=0, column=1, sticky='e')
 
         name_label = CTkLabel(master=self, text='Name')
@@ -222,6 +240,9 @@ class ViewPlaceDetailFrame(CTkFrame):
         self.back_button.grid(row=11, column=1, sticky='e')
         self.back_button.bind('<Button-1>', self.on_back_button_click)
 
+    def on_edit_button_click(self):
+        self.master.update_place(self.place['id'])
+
     def on_back_button_click(self, event):
         # ViewPlaceDetailFrame -> PlaceFrame
         self.master.view_all_places()
@@ -242,6 +263,202 @@ class CreatePlaceFrame(CTkFrame):
         self.chosen_categories = []
         self.categories_var = StringVar()
         self.tagged_friends = []
+        self.chosen_friends = self.tagged_friends
+        self.chosen_friends_var = StringVar()
+
+        self.toplevel_window = None
+
+        # General configuration
+        self.columnconfigure(0, weight=1)
+
+        # Widgets
+        self.label = CTkLabel(master=self, text='Create place', font=CTkFont(size=18, weight='bold'))
+        self.label.grid(row=0, column=0, sticky='w', pady=(0, 20))
+
+        self.name_label = CTkLabel(master=self, text='Name')
+        self.name_label.grid(row=1, column=0, sticky='w')
+        self.name_entry = CTkEntry(master=self, textvariable=self.name_var)
+        self.name_entry.grid(row=2, column=0, columnspan=3, sticky='we', pady=(0, 20))
+
+        self.address_label = CTkLabel(master=self, text='Address')
+        self.address_label.grid(row=3, column=0, sticky='w')
+        self.address_entry = CTkEntry(master=self, textvariable=self.address_var)
+        self.address_entry.grid(row=4, column=0, columnspan=3, sticky='we', pady=(0, 20))
+
+        self.tags_label = CTkLabel(master=self, text='Tags')
+        self.tags_label.grid(row=5, column=0, sticky='w')
+        self.tags_add_button = CTkButton(master=self, text='Modify', width=50, height=30, fg_color='gray', command=self.tag_toplevel)
+        self.tags_add_button.grid(row=5, column=2, sticky='e')
+        self.tags_entry = CTkEntry(master=self, state='disabled', textvariable=self.categories_var)
+        self.tags_entry.grid(row=6, column=0, columnspan=3, sticky='we', pady=(0, 20))
+
+        self.tagged_friends_label = CTkLabel(master=self, text='Tagged friends')
+        self.tagged_friends_label.grid(row=7, column=0, sticky='w')
+        self.tagged_friends_add_button = CTkButton(master=self, text='Modify', width=50, height=30, fg_color='gray', command=self.friend_toplevel)
+        self.tagged_friends_add_button.grid(row=7, column=2, sticky='e')
+        self.tagged_friends_entry = CTkEntry(master=self, state='disabled', textvariable=self.chosen_friends_var)
+        self.tagged_friends_entry.grid(row=8, column=0, columnspan=3, sticky='we', pady=(0, 20))
+
+        self.description_label = CTkLabel(master=self, text='Description')
+        self.description_label.grid(row=9, column=0, sticky='w')
+        self.description_entry = CTkEntry(master=self, textvariable=self.description_var)
+        self.description_entry.grid(row=10, column=0, columnspan=3, sticky='we', pady=(0, 20))
+
+        self.submit_button = CTkButton(master=self, text='Submit', width=50, height=30, fg_color='gray', command=self.submit)
+        self.submit_button.grid(row=11, column=1, padx=(0, 20), sticky='e')
+
+        self.cancel_button = CTkButton(master=self, text='Cancel', width=50, height=30, fg_color='gray', command=self.cancel)
+        self.cancel_button.grid(row=11, column=2, sticky='e')
+
+    def tag_toplevel(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = TagWindow(self, callback=self.submit_tag)  # create window if its None or destroyed
+        else:
+            self.toplevel_window.focus()  # if window exists focus it
+
+    def submit_tag(self, checkbox_vars):
+        self.chosen_categories = []
+        categories_str = ""
+        # for id, var in checkbox_vars.items():
+        #     if var.get() == 1:
+        #         self.chosen_categories.append(id)
+        # for category in self.categories:
+        #     if category['id'] in self.chosen_categories:
+        #         categories_str += category['category'] + '\t'
+        for category_name, var in checkbox_vars.items():
+            if var.get() == 1:
+                self.chosen_categories.append(category_name)
+        categories_str = ', '.join(self.chosen_categories)
+
+        self.categories_var.set(categories_str)
+
+    def friend_toplevel(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = FriendWindow(self, callback=self.submit_friends)
+        else:
+            self.toplevel_window.focus()
+
+    def submit_friends(self, checkbox_vars):
+        self.chosen_friends = []
+        friends_str = ""
+        for id, var in checkbox_vars.items():
+            if var.get() == 1:
+                self.chosen_friends.append(id)
+        for friend in self.friends:
+            if friend['id'] in self.chosen_friends:
+                friends_str += friend['username'] + '\t'
+        self.chosen_friends_var.set(value=friends_str)
+
+    def submit(self):
+        send_place_task(self.sock, self.session_id, task="create_place", name=self.name_var.get(), address=self.address_var.get(),
+                        description=self.description_var.get(), tags=self.chosen_categories, tagged_friends=self.chosen_friends)
+        response = recvall_str(self.sock)
+        if not response.get("success", None):
+            messagebox.showerror("Error", message=code2message(response.get("code", None)))
+        else:
+            self.master.view_all_places()
+
+    def cancel(self):
+        self.master.view_all_places()
+
+
+class TagWindow(CTkToplevel):
+    def __init__(self, master, callback):
+        super().__init__(master)
+        self.categories = master.categories
+        self.chosen_categories = master.chosen_categories
+        self.callback = callback
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.title('Modify category tags')
+        self.geometry('300x600')
+        self.resizable(False, False)
+
+        self.scrollableframe = CTkScrollableFrame(self)
+        self.scrollableframe.grid(row=0, column=0, columnspan=2, sticky='nesw')
+        self.scrollableframe.columnconfigure(0, weight=1)
+
+        self.checkbox_vars = {}
+        for index, category in enumerate(self.categories):
+            self.checkbox_vars[category['category']] = IntVar()
+            if category['category'] in self.chosen_categories:
+                self.checkbox_vars[category['category']].set(value=1)
+            checkbox = CTkCheckBox(self.scrollableframe, text=category['category'], variable=self.checkbox_vars[category['category']], onvalue=1, offvalue=0)
+            checkbox.grid(row=index, column=0, sticky='w')
+
+        self.submit_button = CTkButton(self, text="Submit", width=50, height=30, fg_color='gray', command=self.submit)
+        self.submit_button.grid(row=1, column=0, sticky='e')
+        self.cancel_button = CTkButton(self, text="Cancel", width=50, height=30, fg_color='gray', command=self.cancel)
+        self.cancel_button.grid(row=1, column=1, sticky='e')
+
+    def submit(self):
+        self.callback(self.checkbox_vars)
+        self.destroy()
+
+    def cancel(self):
+        self.destroy()
+
+
+class FriendWindow(CTkToplevel):
+    def __init__(self, master, callback):
+        super().__init__(master)
+        self.friends = master.friends
+        self.tagged_friends = master.tagged_friends
+        self.chosen_friends = master.chosen_friends
+
+        self.callback = callback
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        self.title('Modify friend tags')
+        self.geometry('300x600')
+        self.resizable(False, False)
+
+        self.scrollableframe = CTkScrollableFrame(self)
+        self.scrollableframe.grid(row=0, column=0, columnspan=2, sticky='nesw')
+        self.scrollableframe.columnconfigure(0, weight=1)
+
+        self.checkbox_vars = {}
+        for index, friend in enumerate(self.friends):
+            self.checkbox_vars[friend['id']] = IntVar()
+
+            checkbox = CTkCheckBox(self.scrollableframe, text=friend['username'], variable=self.checkbox_vars[friend['id']], onvalue=1, offvalue=0)
+            if int(friend['id']) in self.chosen_friends:
+                self.checkbox_vars[friend['id']].set(value=1)
+            if int(friend['id']) in self.tagged_friends:
+                checkbox.configure(state='disabled')
+            checkbox.grid(row=index, column=0, sticky='w')
+
+        self.submit_button = CTkButton(self, text="Submit", width=50, height=30, fg_color='gray', command=self.submit)
+        self.submit_button.grid(row=1, column=0, sticky='e')
+        self.cancel_button = CTkButton(self, text="Cancel", width=50, height=30, fg_color='gray', command=self.cancel)
+        self.cancel_button.grid(row=1, column=1, sticky='e')
+
+    def submit(self):
+        self.callback(self.checkbox_vars)
+        self.destroy()
+
+    def cancel(self):
+        self.destroy()
+
+
+class UpdatePlaceFrame(CTkFrame):
+
+    def __init__(self, master, place, categories, friends):
+        super().__init__(master)
+        self.sock = master.sock
+        self.session_id = master.session_id
+        self.place = place
+        self.categories = categories
+        self.friends = friends
+
+        self.name_var = StringVar(value=place['name'])
+        self.address_var = StringVar(value=place['address'])
+        self.description_var = StringVar(value=place['description'])
+        self.chosen_categories = [category['category'] for category in place['categories']]
+        self.categories_var = StringVar()
+        self.tagged_friends = [friend['id'] for friend in place['tagged_friends']]
         self.chosen_friends = self.tagged_friends
         self.chosen_friends_var = StringVar()
 
@@ -324,7 +541,7 @@ class CreatePlaceFrame(CTkFrame):
         self.chosen_friends_var.set(value=friends_str)
 
     def submit(self):
-        send_place_task(self.sock, self.session_id, task="create_place", name=self.name_var.get(), address=self.address_var.get(),
+        send_place_task(self.sock, self.session_id, task="update_place", id=self.place['id'], name=self.name_var.get(), address=self.address_var.get(),
                         description=self.description_var.get(), tags=self.chosen_categories, tagged_friends=self.chosen_friends)
         response = recvall_str(self.sock)
         if not response.get("success", None):
@@ -334,84 +551,3 @@ class CreatePlaceFrame(CTkFrame):
 
     def cancel(self):
         self.master.view_all_places()
-
-
-class TagWindow(CTkToplevel):
-    def __init__(self, master, callback):
-        super().__init__(master)
-        self.categories = master.categories
-        self.chosen_categories = master.chosen_categories
-        self.callback = callback
-
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-        self.title('Modify category tags')
-        self.geometry('300x600')
-        self.resizable(False, False)
-
-        self.scrollableframe = CTkScrollableFrame(self)
-        self.scrollableframe.grid(row=0, column=0, columnspan=2, sticky='nesw')
-        self.scrollableframe.columnconfigure(0, weight=1)
-
-        self.checkbox_vars = {}
-        for index, category in enumerate(self.categories):
-            self.checkbox_vars[category['id']] = IntVar()
-            if int(category['id']) in self.chosen_categories:
-                self.checkbox_vars[category['id']].set(value=1)
-            checkbox = CTkCheckBox(self.scrollableframe, text=category['category'], variable=self.checkbox_vars[category['id']], onvalue=1, offvalue=0)
-            checkbox.grid(row=index, column=0, sticky='w')
-
-        self.submit_button = CTkButton(self, text="Submit", width=50, height=30, fg_color='gray', command=self.submit)
-        self.submit_button.grid(row=1, column=0, sticky='e')
-        self.cancel_button = CTkButton(self, text="Cancel", width=50, height=30, fg_color='gray', command=self.cancel)
-        self.cancel_button.grid(row=1, column=1, sticky='e')
-
-    def submit(self):
-        self.callback(self.checkbox_vars)
-        self.destroy()
-
-    def cancel(self):
-        self.destroy()
-
-
-class FriendWindow(CTkToplevel):
-    def __init__(self, master, callback):
-        super().__init__(master)
-        self.friends = master.friends
-        self.tagged_friends = master.tagged_friends
-        self.chosen_friends = master.chosen_friends
-
-        self.callback = callback
-
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-        self.title('Modify friend tags')
-        self.geometry('300x600')
-        self.resizable(False, False)
-
-        self.scrollableframe = CTkScrollableFrame(self)
-        self.scrollableframe.grid(row=0, column=0, columnspan=2, sticky='nesw')
-        self.scrollableframe.columnconfigure(0, weight=1)
-
-        self.checkbox_vars = {}
-        for index, friend in enumerate(self.friends):
-            self.checkbox_vars[friend['id']] = IntVar()
-
-            checkbox = CTkCheckBox(self.scrollableframe, text=friend['username'], variable=self.checkbox_vars[friend['id']], onvalue=1, offvalue=0)
-            if int(friend['id']) in self.chosen_friends:
-                self.checkbox_vars[friend['id']].set(value=1)
-            if int(friend['id']) in self.tagged_friends:
-                checkbox.configuge(state='disabled')
-            checkbox.grid(row=index, column=0, sticky='w')
-
-        self.submit_button = CTkButton(self, text="Submit", width=50, height=30, fg_color='gray', command=self.submit)
-        self.submit_button.grid(row=1, column=0, sticky='e')
-        self.cancel_button = CTkButton(self, text="Cancel", width=50, height=30, fg_color='gray', command=self.cancel)
-        self.cancel_button.grid(row=1, column=1, sticky='e')
-
-    def submit(self):
-        self.callback(self.checkbox_vars)
-        self.destroy()
-
-    def cancel(self):
-        self.destroy()

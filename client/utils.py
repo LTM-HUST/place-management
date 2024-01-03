@@ -149,10 +149,21 @@ def send_place_task(sock, session_id,
         }
     elif task in ["view_categories"]:
         content = {}
-    elif task in ["create_place", "update_place"]:
+    elif task in ["create_place"]:
         if not name:
             raise ValueError("name is required!")
         content = {
+            "name": name,
+            "address": address,
+            "tags": tags,
+            "tagged_friends": tagged_friends,
+            "description": description
+        }
+    elif task in ["update_place"]:
+        if not (id and name):
+            raise ValueError("id and name are required!")
+        content = {
+            "id": id,
             "name": name,
             "address": address,
             "tags": tags,
