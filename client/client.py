@@ -94,15 +94,8 @@ class MainFrame(CTkFrame):
         self.place_nav()
 
     def place_nav(self):
-        send_place_task(self.sock, self.session_id, task="view_places")
-        places_message = recvall_str(self.sock)
-        send_place_task(self.sock, self.session_id, task="view_my_places")
-        my_places_message = recvall_str(self.sock)
-        send_place_task(self.sock, self.session_id, task="view_liked_places")
-        liked_places_message = recvall_str(self.sock)
-
         self.content_frame.grid_forget() if self.content_frame else None
-        self.content_frame = PlaceFrame(self, places_message, my_places_message, liked_places_message)
+        self.content_frame = PlaceFrame(self)
         self.content_frame.configure(fg_color='transparent')
         self.content_frame.grid(row=0, column=1, sticky='nsew')
 

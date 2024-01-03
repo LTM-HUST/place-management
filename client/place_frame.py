@@ -12,27 +12,29 @@ image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'images')
 
 class PlaceFrame(CTkScrollableFrame):
 
-    def __init__(self, master, places_message, my_places_message, liked_places_message):
+    def __init__(self, master):
         super().__init__(master)
         self.sock = master.sock
         self.session_id = master.session_id
-        self.places_message = places_message
-        self.my_places_message = my_places_message
-        self.liked_places_message = liked_places_message
 
         self.columnconfigure(0, weight=1)  # stretch the first column to fill the whole remaining space
-        self.current_frame = ViewAllPlaceFrame(master=self)  # init current_frame as ViewAllPlaceFrame
-        self.current_frame.grid(row=0, column=0, sticky='nsew')  # stretch frame to fill master
-        self.current_frame.grid_columnconfigure(0, weight=1)  # stretch the first column to fill the whole remaining space
+
+        self.current_frame = None
+        self.view_all_places()  # init current_frame as ViewAllPlaceFrame
 
     """
-    All the following methods are used to switch between frames.
-    What they do is to destroy the current frame and create a new one.
+    All the following methods are used to switch between frames in place tab.
     """
 
     def view_all_places(self):
-        self.current_frame.destroy()
-        self.current_frame = ViewAllPlaceFrame(master=self)
+        send_place_task(self.sock, self.session_id, task="view_places")
+        places_resp = recvall_str(self.sock)
+        send_place_task(self.sock, self.session_id, task="view_my_places")
+        my_places_resp = recvall_str(self.sock)
+        send_place_task(self.sock, self.session_id, task="view_liked_places")
+        liked_places_resp = recvall_str(self.sock)
+        self.current_frame.destroy() if self.current_frame else None
+        self.current_frame = ViewAllPlaceFrame(master=self, all_places=places_resp['content'], my_places=my_places_resp['content'], liked_places=liked_places_resp['content'])
         self.current_frame.grid(row=0, column=0, sticky='nsew')
         self.current_frame.grid_columnconfigure(0, weight=1)
 
@@ -77,10 +79,13 @@ class PlaceFrame(CTkScrollableFrame):
 
 class ViewAllPlaceFrame(CTkFrame):
 
-    def __init__(self, master):
+    def __init__(self, master, all_places=None, my_places=None, liked_places=None):
         super().__init__(master)
         self.sock = master.sock
         self.session_id = master.session_id
+        self.all_places = all_places
+        self.my_places = my_places
+        self.liked_places = liked_places
 
         # Images
         self.add_icon = CTkImage(Image.open(os.path.join(image_path, 'add_icon.png')), size=(30, 30))
@@ -110,25 +115,21 @@ class ViewAllPlaceFrame(CTkFrame):
         self.liked_places_tab.grid_columnconfigure(0, weight=1)
 
         # All places widgets
-        places = master.places_message.get("content", None)
-        for index, place in enumerate(places):
+        for index, place in enumerate(self.all_places):
             place_item = PlaceItem(master=self.all_places_tab, place=place, owned=False)
             place_item.grid(row=index, column=0, sticky='ew')
 
         # My created places widgets
-        places = master.my_places_message.get("content", None)
-        for index, place in enumerate(places):
+        for index, place in enumerate(self.my_places):
             place_item = PlaceItem(master=self.my_created_places_tab, place=place)
             place_item.grid(row=index, column=0, sticky='ew')
 
         # Liked places widgets
-        places = master.liked_places_message.get("content", None)
-        for index, place in enumerate(places):
+        for index, place in enumerate(self.liked_places):
             place_item = PlaceItem(master=self.liked_places_tab, place=place, owned=False)
             place_item.grid(row=index, column=0, sticky='ew')
 
     def on_add_button_click(self, event):
-        # ViewAllPlaceFrame -> PlaceFrame
         self.master.create_place()
 
 
@@ -181,12 +182,15 @@ class PlaceItem(CTkFrame):
         self.master.master.master.master.update_place(self.place['id'])
 
     def on_delete_button_click(self):
-        messagebox.askokcancel("Delete place", "Are you sure you want to delete this place?", command=send_place_task(self.sock, self.session_id, task="delete_place", id=self.place['id']))
-        response = recvall_str(self.sock)
-        if not response.get("success", None):
-            messagebox.showerror("Error", message=code2message(response.get("code", None)))
-        else:
-            messagebox.showinfo("Success", message="Place deleted successfully!")
+        confirm = messagebox.askokcancel("Delete place", "Do you really want to delete this place?")
+        if confirm:
+            send_place_task(self.sock, self.session_id, task="delete_place", id=self.place['id'])
+            response = recvall_str(self.sock)
+            if not response.get("success", None):
+                messagebox.showerror("Error", message=code2message(response.get("code", None)))
+            else:
+                messagebox.showinfo("Success", message="Place deleted successfully!")
+                self.master.master.master.master.view_all_places()
 
 
 class ViewPlaceDetailFrame(CTkFrame):
@@ -200,8 +204,6 @@ class ViewPlaceDetailFrame(CTkFrame):
 
         # Images
         self.edit_icon = CTkImage(Image.open(os.path.join(image_path, 'edit_icon.png')), size=(30, 30))
-
-        # General configuration
 
         # Widgets
         self.label = CTkLabel(master=self, text='Place detail', font=CTkFont(size=18, weight='bold'))
@@ -223,12 +225,12 @@ class ViewPlaceDetailFrame(CTkFrame):
 
         tags_label = CTkLabel(master=self, text='Tags')
         tags_label.grid(row=5, column=0, sticky='w')
-        tags_value = CTkLabel(master=self, text=', '.join(category['category'] for category in place['categories']), wraplength=1000, justify='left')
+        tags_value = CTkLabel(master=self, text=' '.join(category for category in place['categories']), wraplength=1000, justify='left')
         tags_value.grid(row=6, column=0, sticky='w', pady=(0, 20))
 
         tagged_friends_label = CTkLabel(master=self, text='Tagged friends')
         tagged_friends_label.grid(row=7, column=0, sticky='w')
-        tagged_friends_value = CTkLabel(master=self, text=', '.join(friends['username'] for friends in place['tagged_friends']), wraplength=1000, justify='left')
+        tagged_friends_value = CTkLabel(master=self, text=' '.join(friends['username'] for friends in place['tagged_friends']), wraplength=1000, justify='left')
         tagged_friends_value.grid(row=8, column=0, sticky='w', pady=(0, 20))
 
         description_label = CTkLabel(master=self, text='Description')
@@ -244,7 +246,6 @@ class ViewPlaceDetailFrame(CTkFrame):
         self.master.update_place(self.place['id'])
 
     def on_back_button_click(self, event):
-        # ViewPlaceDetailFrame -> PlaceFrame
         self.master.view_all_places()
 
 
@@ -275,7 +276,7 @@ class CreatePlaceFrame(CTkFrame):
         self.label = CTkLabel(master=self, text='Create place', font=CTkFont(size=18, weight='bold'))
         self.label.grid(row=0, column=0, sticky='w', pady=(0, 20))
 
-        self.name_label = CTkLabel(master=self, text='Name')
+        self.name_label = CTkLabel(master=self, text='Name (required)')
         self.name_label.grid(row=1, column=0, sticky='w')
         self.name_entry = CTkEntry(master=self, textvariable=self.name_var)
         self.name_entry.grid(row=2, column=0, columnspan=3, sticky='we', pady=(0, 20))
@@ -312,29 +313,23 @@ class CreatePlaceFrame(CTkFrame):
 
     def tag_toplevel(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = TagWindow(self, callback=self.submit_tag)  # create window if its None or destroyed
+            self.toplevel_window = TagWindow(self, callback=self.submit_tag)
+            self.toplevel_window.focus()
         else:
-            self.toplevel_window.focus()  # if window exists focus it
+            self.toplevel_window.focus()
 
     def submit_tag(self, checkbox_vars):
         self.chosen_categories = []
-        categories_str = ""
-        # for id, var in checkbox_vars.items():
-        #     if var.get() == 1:
-        #         self.chosen_categories.append(id)
-        # for category in self.categories:
-        #     if category['id'] in self.chosen_categories:
-        #         categories_str += category['category'] + '\t'
         for category_name, var in checkbox_vars.items():
             if var.get() == 1:
                 self.chosen_categories.append(category_name)
-        categories_str = ', '.join(self.chosen_categories)
 
-        self.categories_var.set(categories_str)
+        self.categories_var.set(value=' '.join(self.chosen_categories))
 
     def friend_toplevel(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
             self.toplevel_window = FriendWindow(self, callback=self.submit_friends)
+            self.toplevel_window.focus()
         else:
             self.toplevel_window.focus()
 
@@ -346,7 +341,7 @@ class CreatePlaceFrame(CTkFrame):
                 self.chosen_friends.append(id)
         for friend in self.friends:
             if friend['id'] in self.chosen_friends:
-                friends_str += friend['username'] + '\t'
+                friends_str += friend['username'] + ' '
         self.chosen_friends_var.set(value=friends_str)
 
     def submit(self):
@@ -381,10 +376,11 @@ class TagWindow(CTkToplevel):
 
         self.checkbox_vars = {}
         for index, category in enumerate(self.categories):
-            self.checkbox_vars[category['category']] = IntVar()
-            if category['category'] in self.chosen_categories:
-                self.checkbox_vars[category['category']].set(value=1)
-            checkbox = CTkCheckBox(self.scrollableframe, text=category['category'], variable=self.checkbox_vars[category['category']], onvalue=1, offvalue=0)
+            self.checkbox_vars[category] = IntVar()
+            if category in self.chosen_categories:
+                self.checkbox_vars[category].set(value=1)
+
+            checkbox = CTkCheckBox(self.scrollableframe, text=category, variable=self.checkbox_vars[category], onvalue=1, offvalue=0)
             checkbox.grid(row=index, column=0, sticky='w')
 
         self.submit_button = CTkButton(self, text="Submit", width=50, height=30, fg_color='gray', command=self.submit)
@@ -456,11 +452,18 @@ class UpdatePlaceFrame(CTkFrame):
         self.name_var = StringVar(value=place['name'])
         self.address_var = StringVar(value=place['address'])
         self.description_var = StringVar(value=place['description'])
-        self.chosen_categories = [category['category'] for category in place['categories']]
-        self.categories_var = StringVar()
+
+        self.chosen_categories = place['categories']
+        self.categories_var = StringVar(value=' '.join(category for category in place['categories']))
+
         self.tagged_friends = [friend['id'] for friend in place['tagged_friends']]
         self.chosen_friends = self.tagged_friends
         self.chosen_friends_var = StringVar()
+        friends_str = ""
+        for friend in self.friends:
+            if friend['id'] in self.chosen_friends:
+                friends_str += friend['username'] + ' '
+        self.chosen_friends_var.set(value=friends_str)
 
         self.toplevel_window = None
 
@@ -471,7 +474,7 @@ class UpdatePlaceFrame(CTkFrame):
         self.label = CTkLabel(master=self, text='Create place', font=CTkFont(size=18, weight='bold'))
         self.label.grid(row=0, column=0, sticky='w', pady=(0, 20))
 
-        self.name_label = CTkLabel(master=self, text='Name')
+        self.name_label = CTkLabel(master=self, text='Name (required)')
         self.name_label.grid(row=1, column=0, sticky='w')
         self.name_entry = CTkEntry(master=self, textvariable=self.name_var)
         self.name_entry.grid(row=2, column=0, columnspan=3, sticky='we', pady=(0, 20))
@@ -508,20 +511,17 @@ class UpdatePlaceFrame(CTkFrame):
 
     def tag_toplevel(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = TagWindow(self, callback=self.submit_tag)  # create window if its None or destroyed
+            self.toplevel_window = TagWindow(self, callback=self.submit_tag)
         else:
-            self.toplevel_window.focus()  # if window exists focus it
+            self.toplevel_window.focus()
 
     def submit_tag(self, checkbox_vars):
         self.chosen_categories = []
-        categories_str = ""
-        for id, var in checkbox_vars.items():
+        for category_name, var in checkbox_vars.items():
             if var.get() == 1:
-                self.chosen_categories.append(id)
-        for category in self.categories:
-            if category['id'] in self.chosen_categories:
-                categories_str += category['category'] + '\t'
-        self.categories_var.set(categories_str)
+                self.chosen_categories.append(category_name)
+
+        self.categories_var.set(value=' '.join(self.chosen_categories))
 
     def friend_toplevel(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
@@ -537,7 +537,7 @@ class UpdatePlaceFrame(CTkFrame):
                 self.chosen_friends.append(id)
         for friend in self.friends:
             if friend['id'] in self.chosen_friends:
-                friends_str += friend['username'] + '\t'
+                friends_str += friend['username'] + ' '
         self.chosen_friends_var.set(value=friends_str)
 
     def submit(self):

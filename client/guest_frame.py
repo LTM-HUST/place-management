@@ -1,6 +1,7 @@
 from customtkinter import *
 from tkinter import messagebox
-from utils import recvall_str, sendall_str, send_user_task
+from response_code import code2message
+from utils import recvall_str, send_user_task
 
 
 class GuestFrame(CTkFrame):
@@ -61,15 +62,11 @@ class LoginFrame(CTkFrame):
 
     def login(self):
         send_user_task(self.sock, self.session_id, task="login", username=self.username_var.get(), password=self.password_var.get())
-
         resp = recvall_str(self.sock)
-        if resp['success']:
-            self.master.master.main_nav()
+        if not resp.get("success", None):
+            messagebox.showerror("Error", message=code2message(resp.get("code", None)))
         else:
-            if resp['code'] == 202:
-                messagebox.showerror("Error", "Username or password is incorrect!")
-            elif resp['code'] == 204:
-                messagebox.showerror("Error", "This account is already logged in somewhere else!")
+            self.master.master.main_nav()
 
     def register_nav(self, event):
         self.master.register_nav()
@@ -114,18 +111,12 @@ class RegisterFrame(CTkFrame):
     def register(self):
         send_user_task(self.sock, self.session_id, task="register",
                        username=self.username_var.get(), password=self.password_var.get(), retype_password=self.retype_password_var.get())
-
         resp = recvall_str(self.sock)
-        if resp['success']:
-            messagebox.showinfo("Success", "Register successfully!")
-            self.master.login_nav()
+        if not resp.get("success", None):
+            messagebox.showerror("Error", message=code2message(resp.get("code", None)))
         else:
-            if resp['code'] == 201:
-                messagebox.showerror("Error", "Username has been used!")
-            elif resp['code'] == 203:
-                messagebox.showerror("Error", "Password and retype password are not the same!")
-            elif resp['code'] == 214:
-                messagebox.showerror("Error", "Required field is missing!")
+            messagebox.showinfo("Success", message=code2message(resp.get("code", None)))
+            self.master.login_nav()
 
     def login_nav(self, event):
         self.master.login_nav()

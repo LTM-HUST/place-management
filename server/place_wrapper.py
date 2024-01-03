@@ -67,11 +67,8 @@ class PlaceRoute():
         code = 110
         content = []
 
-        my_places = self.session.query(Place.id, Place.name, Place.description) \
-            .filter(Place.user_id == self.user.id, Place.active).all()
-        liked_places = self.session.query(Place.id, Place.name, Place.description) \
-            .join(Tag, Place.tag) \
-            .filter(Tag.friend_id == self.user.id, Tag.liked, Tag.active, Place.active).all()
+        my_places = self.get_my_places()
+        liked_places = self.get_liked_places()
         places = my_places + liked_places
         for place in places:
             content.append({
@@ -88,8 +85,7 @@ class PlaceRoute():
         code = 111
         content = []
 
-        places = self.session.query(Place.id, Place.name, Place.description) \
-            .filter(Place.user_id == self.user.id, Place.active).all()
+        places = self.get_my_places()
         for place in places:
             content.append({
                 "id": place.id,
@@ -105,9 +101,7 @@ class PlaceRoute():
         code = 112
         content = []
 
-        places = self.session.query(Place.id, Place.name, Place.description) \
-            .join(Tag, Place.tag) \
-            .filter(Tag.friend_id == self.user.id, Tag.liked, Tag.active, Place.active).all()
+        places = self.get_liked_places()
         for place in places:
             content.append({
                 "id": place.id,
@@ -119,15 +113,21 @@ class PlaceRoute():
 
     @get_user_from_session_id
     def view_place_detail(self):
-        place = self.session.query(Place).options(
-            joinedload(Place.tag), joinedload(Place.category)
-        ).filter(Place.id == self.id, Place.active).first()
-
-        categories = [{"id": category.id, "category": category.category} for category in place.category]
+        place = (
+            self.session.query(Place)
+            .options(joinedload(Place.category), joinedload(Place.tag))
+            .filter(Place.id == self.id, Place.active)
+            .first()
+        )
+        categories = [category.category for category in place.category if category.active]
         tagged_friends = []
         for tag in place.tag:
-            friend_id = tag.friend_id
-            friend_as_user = self.session.query(User).filter(User.id == friend_id, User.active).first()
+            if not tag.active:
+                continue
+            friend_as_user = (
+                self.session.query(User)
+                .filter(User.id == tag.friend_id, User.active).first()
+            )
             tagged_friends.append({
                 "id": friend_as_user.id,
                 "username": friend_as_user.username
@@ -156,12 +156,8 @@ class PlaceRoute():
         code = 160
         content = []
 
-        categories = [category for category in place_category.__members__.values()]
-        for id, category in enumerate(categories):
-            content.append({
-                "id": id,
-                "category": category
-            })
+        for category in place_category:
+            content.append(category)
 
         return success, code, content
 
@@ -193,7 +189,7 @@ class PlaceRoute():
         code = 114
 
         return success, code, content
-    
+
     @get_user_from_session_id
     def update_place(self):
         content = {}
@@ -202,15 +198,7 @@ class PlaceRoute():
         place.name = self.name
         place.address = self.address
         place.description = self.description
-        
-        # old_categories_id = [category.id for category in place.category]
-        # new_categories_id = self.tags
-        # for category_id in [id for id in old_categories_id if id not in new_categories_id]:
-        #     category = self.session.query(Category).filter(Category.place_id == self.id, Category.category == place_category.__members__.get(category_id)).first()
-        #     category.active = False
-        # for category_id in [id for id in new_categories_id if id not in old_categories_id]:
-        #     category = Category(category=place_category[category_id].name)
-        #     place.category.append(category)
+
         old_categories = [category.category for category in place.category]
         new_categories = self.tags
         for category in [category for category in old_categories if category not in new_categories]:
@@ -231,7 +219,7 @@ class PlaceRoute():
         code = 115
 
         return success, code, content
-    
+
     @get_user_from_session_id
     def delete_place(self):
         content = {}
@@ -244,12 +232,16 @@ class PlaceRoute():
         code = 116
 
         return success, code, content
-    
-    def get_my_places(self) -> list[Place]:
-        return self.session.query(Place.id, Place.name, Place.description) \
-            .filter(Place.user_id == self.user.id, Place.active).all()
-    def get_liked_places(self) -> list[Place]:
-        return self.session.query(Place.id, Place.name, Place.description) \
-            .join(Tag, Place.tag) \
-            .filter(Tag.friend_id == self.user.id, Tag.liked, Tag.active, Place.active).all()
 
+    def get_my_places(self) -> list[Place]:
+        return (
+            self.session.query(Place.id, Place.name, Place.description)
+            .filter(Place.user_id == self.user.id, Place.active).all()
+        )
+
+    def get_liked_places(self) -> list[Place]:
+        return (
+            self.session.query(Place.id, Place.name, Place.description)
+            .join(Tag, Place.tag)
+            .filter(Tag.friend_id == self.user.id, Tag.liked, Tag.active, Place.active).all()
+        )
