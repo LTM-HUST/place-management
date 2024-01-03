@@ -4,12 +4,12 @@
 103 Change Password Successfully
 110 View All Places Successfully
 111 View All My Place Successfully
-112 View All Friend’s Liked Places Successfully
+112 View All Friend's Liked Places Successfully
 113 View Place Detail Successfully
 114 Create Place Successfully
 115 Update Place Successfully
 116 Delete Place Successfully
-117 Like Friend’s Place Successfully
+117 Like Friend's Place Successfully
 120 Send Friend Request Successfully
 121 Cancel Friend Request Successfully
 122 Accept Friend Request Successfully
@@ -19,15 +19,15 @@
 131 View List Friend Request Successfully
 140 View Notification Successfully
 150 View Profile Successfully
-200 Username or Password Hasn’t Filled In
+200 Username or Password Hasn't Filled In
 201 Account Existed
 202 Username or Password Is Incorrect
 203 Re-Type Password Is Incorrect
 204 Account Is Logged In Elsewhere
 205 Unauthorized User
-206 This User Doesn’t Exist
+206 This User Doesn't Exist
 207 Old Password Is Incorrect
-214 Required Fields Haven’t Filled In
+214 Required Fields Haven't Filled In
 216 Place No Longer Exist
 220 This User Already In Your Friend List
 221 Friend Request No Longer Exist
