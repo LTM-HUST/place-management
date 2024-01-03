@@ -52,7 +52,7 @@ def send_friend_task(sock,
         raise ValueError("friend_id is required!")
     if task in ["send_friend_request"] and friend_name is None:
         raise ValueError("friend_name is required!")
-    
+
     if task == "send_friend_request":
         content = {
             "target_friend_name": friend_name
@@ -91,6 +91,7 @@ def send_notification_task(sock,
     }
 
     message = json.dumps(message_json)
+    sendall_str(sock, message)
 
 
 def send_user_task(sock, session_id,
@@ -135,8 +136,8 @@ def send_user_task(sock, session_id,
 
 def send_place_task(sock, session_id,
                     task: Literal["view_places", "view_my_places", "view_liked_places", "view_place_detail",
-                                  "create_place", "update_place", "delete_place", "like_friend_place"],
-                    id=None):
+                                  "view_categories", "create_place", "update_place", "delete_place", "like_friend_place"],
+                    id=None, name=None, address=None, tags=None, tagged_friends=None, description=None):
 
     if task in ["view_places", "view_my_places", "view_liked_places"]:
         content = {}
@@ -146,8 +147,18 @@ def send_place_task(sock, session_id,
         content = {
             "id": id
         }
+    elif task in ["view_categories"]:
+        content = {}
     elif task in ["create_place", "update_place"]:
-        pass
+        if not name:
+            raise ValueError("name is required!")
+        content = {
+            "name": name,
+            "address": address,
+            "tags": tags,
+            "tagged_friends": tagged_friends,
+            "description": description
+        }
     elif task in ["delete_place", "like_friend_place"]:
         if not id:
             raise ValueError("id is required!")
@@ -162,12 +173,13 @@ def send_place_task(sock, session_id,
     }
 
     message = json.dumps(message_json)
+    print(message)
     sendall_str(sock, message)
 
-    
-def send_profile_task(sock, session_id, task: Literal["view_profile, change_password", "logout"], 
-                      old_password: str = "", 
-                      new_password: str = "", 
+
+def send_profile_task(sock, session_id, task: Literal["view_profile, change_password", "logout"],
+                      old_password: str = "",
+                      new_password: str = "",
                       retype_password: str = ""):
     if task in ["view_profile", "logout"]:
         content = {}
@@ -177,12 +189,12 @@ def send_profile_task(sock, session_id, task: Literal["view_profile, change_pass
             "new_password": new_password,
             "retype_password": retype_password
         }
-        
+
     message_json = {
         "session_id": session_id,
         "task": task,
         "content": content
     }
-        
+
     message = json.dumps(message_json)
-    sendall_str(sock, message)   
+    sendall_str(sock, message)

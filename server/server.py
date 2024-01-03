@@ -19,7 +19,7 @@ TASK_FRIEND = ["send_friend_request", "accept_friend_request", "reject_friend_re
                "delete_friend", "view_friend_list", "view_friend_request"]
 TASK_NOTIFICATION = ["view_notification_list"]
 TASK_USER = ["register", "login", "logout", "view_profile", "change_password"]
-TASK_PLACE = ["view_places", "view_my_places", "view_liked_places", "view_place_detail",
+TASK_PLACE = ["view_places", "view_my_places", "view_liked_places", "view_place_detail", "view_categories",
               "create_place", "update_place", "delete_place", "like_friend_place"]
 
 SessionLocal = sessionmaker(bind=engine)
