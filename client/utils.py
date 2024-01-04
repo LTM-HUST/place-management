@@ -50,8 +50,6 @@ def send_friend_task(sock,
                      friend_name: str = None):
     if task in ["accept_friend_request", "reject_friend_request", "delete_friend"] and friend_id is None:
         raise ValueError("friend_id is required!")
-    if task in ["send_friend_request"] and friend_name is None:
-        raise ValueError("friend_name is required!")
 
     if task == "send_friend_request":
         content = {
@@ -99,16 +97,12 @@ def send_user_task(sock, session_id,
                    username=None, password=None, retype_password=None, old_password=None, new_password=None):
 
     if task == "register":
-        if not (username and password and retype_password):
-            raise ValueError("username, password and retype_password are required!")
         content = {
             "username": username,
             "password": password,
             "retype_password": retype_password
         }
     elif task == "login":
-        if not (username and password):
-            raise ValueError("username and password are required!")
         content = {
             "username": username,
             "password": password
@@ -116,8 +110,6 @@ def send_user_task(sock, session_id,
     elif task in ["logout", "view_profile"]:
         content = {}
     elif task == "change_password":
-        if not (old_password and new_password and retype_password):
-            raise ValueError("old_password, new_password and retype_password are required!")
         content = {
             "old_password": old_password,
             "new_password": new_password,
@@ -150,8 +142,6 @@ def send_place_task(sock, session_id,
     elif task in ["view_categories"]:
         content = {}
     elif task in ["create_place"]:
-        if not name:
-            raise ValueError("name is required!")
         content = {
             "name": name,
             "address": address,
@@ -160,8 +150,8 @@ def send_place_task(sock, session_id,
             "description": description
         }
     elif task in ["update_place"]:
-        if not (id and name):
-            raise ValueError("id and name are required!")
+        if not id:
+            raise ValueError("id is required!")
         content = {
             "id": id,
             "name": name,
