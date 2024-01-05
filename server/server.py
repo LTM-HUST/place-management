@@ -42,7 +42,7 @@ def task(sock, session_id, ip, port):
     while True:
         try:
             data = recvall_str(sock)
-        except ConnectionResetError as e:
+        except (UnboundLocalError, ConnectionError) as e:
             write_log(ip, port, type="close")
             session_manager.delete_session(session_id)
             break
