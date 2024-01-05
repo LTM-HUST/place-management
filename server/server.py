@@ -42,7 +42,7 @@ def task(sock, session_id, ip, port):
     while True:
         try:
             data = recvall_str(sock)
-        except UnboundLocalError as e:
+        except (UnboundLocalError, ConnectionError) as e:
             write_log(ip, port, type="close")
             print(f"{ip}:{port} has been disconnected!")
             print(session_manager.sessions)
