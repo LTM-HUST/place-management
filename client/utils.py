@@ -15,7 +15,6 @@ def recvall_str(sock):
     condition = True
     while condition:
         packet = sock.recv(1024)
-        print(packet)
         if not packet:
             condition = False
         packet_str = packet.decode('utf8')
@@ -174,7 +173,6 @@ def send_place_task(sock, session_id,
     }
 
     message = json.dumps(message_json)
-    print(message)
     sendall_str(sock, message)
 
 
