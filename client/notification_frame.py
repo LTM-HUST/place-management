@@ -40,7 +40,6 @@ class NotificationItem(CTkFrame):
         self.columnconfigure(1, weight=1)
         self.bind('<Leave>', self.on_leave)
         self.bind('<Enter>', self.on_enter)
-        self.bind('<Button-1>', self.on_click)
 
         # Widgets
         message_label = CTkLabel(master=self, text=self.message)
@@ -53,10 +52,4 @@ class NotificationItem(CTkFrame):
 
     def on_leave(self, event):
         self.configure(fg_color=self.color)
-
-    def on_click(self, event):
-        # Modify to render a new frame with the place details
-        print(f"Message: {self.message}")
-        print(f"Time: {self.message_time}")
-        print(self.master.session_id)
         

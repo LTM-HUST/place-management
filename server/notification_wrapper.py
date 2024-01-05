@@ -45,5 +45,10 @@ class NotificationRoute():
             content.append({"place_id": place_id, "place_name": place_name,
                             "friend_id": user_id, "username": username,
                             "time": created_at.strftime("%m/%d/%Y, %H:%M:%S"), "read": friend_notification})
+            tag = self.session.query(Tag) \
+                                .filter(Tag.id == tag_id).first()
+            if tag:
+                tag.friend_notification = True
+                self.session.commit()
             
         return success, code, content

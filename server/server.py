@@ -44,10 +44,7 @@ def task(sock, session_id, ip, port):
             data = recvall_str(sock)
         except (UnboundLocalError, ConnectionError) as e:
             write_log(ip, port, type="close")
-            print(f"{ip}:{port} has been disconnected!")
-            print(session_manager.sessions)
             session_manager.delete_session(session_id)
-            print(session_manager.sessions)
             break
 
         if not data:
@@ -56,7 +53,7 @@ def task(sock, session_id, ip, port):
         write_log(ip, port, type="request", data=data)
         if isinstance(data, str):
             data = json.loads(data)
-        print(data)
+
         task = data.get("task", None)
         if task in TASK_FRIEND:
             route = FriendRoute(session, session_id, data)
@@ -88,17 +85,14 @@ if __name__ == '__main__':
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((host, port))
-    print("socket binded to port", port)
 
     server_socket.listen(5)
-    print("socket is listening")
 
     while True:
         connection = None
         try:
             connection, addr = server_socket.accept()
 
-            print('Connected to :', addr[0], ':', addr[1])
             write_log(addr[0], addr[1], type="connect")
 
             session_id = session_manager.create_session()

@@ -104,7 +104,6 @@ class FriendItem(CTkFrame):
         self.columnconfigure(0, weight=1) # stretch the first column to fill the whole remaining space
         self.bind('<Enter>', self.on_enter)
         self.bind('<Leave>', self.on_leave)
-        self.bind('<Button-1>', self.on_click)
 
         # Images
         self.accept_icon = CTkImage(Image.open(os.path.join(image_path, 'accept_icon.png')), size=(30, 30))
@@ -134,33 +133,24 @@ class FriendItem(CTkFrame):
 
     def on_leave(self, event):
         self.configure(fg_color='transparent')
-
-    def on_click(self, event):
-        # Modify to render a new frame with the place details
-        print(f"Friend ID: {self.friend['id']}")
-        print(f"Friend name: {self.friend['username']}")
         
     def accept_friend(self):
         send_friend_task(self.sock, self.session_id, task="accept_friend_request", friend_id=self.friend["id"])
         response = recvall_str(self.sock)
-        if len(response) == 0:
-            print("No connection!")
-        elif response.get("success"):
-            print(f"{self.friend['username']} is now your friend!")
-            self.destroy()
+        if not response.get("success", None):
+            messagebox.showerror("Error", message=code2message(response.get("code", None)))
         else:
-            print("Not successful")
+            self.destroy()
+            messagebox.showinfo("Success", message=code2message(response.get("code", None)))
         
     def reject_friend(self):
         send_friend_task(self.sock, self.session_id, task="reject_friend_request", friend_id=self.friend["id"])
         response = recvall_str(self.sock)
-        if len(response) == 0:
-            print("No connection!")
-        elif response.get("success"):
-            print(f"{self.friend['username']} is rejected!")
-            self.destroy()
+        if not response.get("success", None):
+            messagebox.showerror("Error", message=code2message(response.get("code", None)))
         else:
-            print("Not successful")
+            self.destroy()
+            messagebox.showinfo("Success", message=code2message(response.get("code", None)))           
         
     def delete_friend(self):
         confirm = askyesno(title='confirmation',
@@ -168,10 +158,8 @@ class FriendItem(CTkFrame):
         if confirm:
             send_friend_task(self.sock, self.session_id, task="delete_friend", friend_id=self.friend["id"])
             response = recvall_str(self.sock)
-            if len(response) == 0:
-                print("No connection!")
-            elif response.get("success"):
-                print(f"{self.friend['username']} is no longer in your friend list!")
-                self.destroy()
+            if not response.get("success", None):
+                messagebox.showerror("Error", message=code2message(response.get("code", None)))
             else:
-                print("Not successful")
+                self.destroy()
+                messagebox.showinfo("Success", message=code2message(response.get("code", None)))     

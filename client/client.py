@@ -148,7 +148,6 @@ if __name__ == "__main__":
     data = recvall_str(s)
     session_id = data.get("session_id", None)
     if session_id is None:
-        print("No connection!")
         s.close()
         exit(1)
 
