@@ -140,8 +140,8 @@ class FriendItem(CTkFrame):
         if not response.get("success", None):
             messagebox.showerror("Error", message=code2message(response.get("code", None)))
         else:
-            messagebox.showinfo("Success", message=code2message(response.get("code", None)))
             self.destroy()
+            messagebox.showinfo("Success", message=code2message(response.get("code", None)))
         
     def reject_friend(self):
         send_friend_task(self.sock, self.session_id, task="reject_friend_request", friend_id=self.friend["id"])
@@ -149,8 +149,8 @@ class FriendItem(CTkFrame):
         if not response.get("success", None):
             messagebox.showerror("Error", message=code2message(response.get("code", None)))
         else:
-            messagebox.showinfo("Success", message=code2message(response.get("code", None)))
             self.destroy()
+            messagebox.showinfo("Success", message=code2message(response.get("code", None)))           
         
     def delete_friend(self):
         confirm = askyesno(title='confirmation',
@@ -161,5 +161,5 @@ class FriendItem(CTkFrame):
             if not response.get("success", None):
                 messagebox.showerror("Error", message=code2message(response.get("code", None)))
             else:
-                messagebox.showinfo("Success", message=code2message(response.get("code", None)))
                 self.destroy()
+                messagebox.showinfo("Success", message=code2message(response.get("code", None)))     
