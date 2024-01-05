@@ -154,10 +154,10 @@ class PlaceItem(CTkFrame):
         self.delete_icon = CTkImage(Image.open(os.path.join(image_path, 'delete_icon.png')), size=(30, 30))
 
         # Widgets
-        place_name_label = CTkLabel(master=self, text=self.place['name'], wraplength=1000, justify='left')
+        place_name_label = CTkLabel(master=self, text=f"Place name: {self.place['name']}", wraplength=1000, justify='left')
         place_name_label.grid(row=0, column=0, sticky='w')
-        place_name_addr = CTkLabel(master=self, text=self.place['description'], wraplength=1000, justify='left')
-        place_name_addr.grid(row=1, column=0, sticky='w')
+        place_name_desc = CTkLabel(master=self, text=f"Description: {self.place['description']}", wraplength=1000, justify='left')
+        place_name_desc.grid(row=1, column=0, sticky='w', pady=(0,30))
 
         if self.owned:
             edit_button = CTkButton(master=self, text='', image=self.edit_icon, width=30, height=30, fg_color='transparent', command=self.on_edit_button_click)

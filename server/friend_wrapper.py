@@ -107,12 +107,12 @@ class FriendRoute():
                                     .join(User, Friend.target_friend_id == User.id) \
                                     .filter(Friend.source_friend_id == self.user.id, 
                                             Friend.active, 
-                                            Friend.status == "accepted").all()
+                                            Friend.status == "accepted", User.active).all()
         friend_target = self.session.query(Friend.source_friend_id, User.username) \
                                     .join(User, Friend.source_friend_id == User.id) \
                                     .filter(Friend.target_friend_id == self.user.id, 
                                             Friend.active, 
-                                            Friend.status == "accepted").all()
+                                            Friend.status == "accepted", User.active).all()
         friend_list = friend_source + friend_target
         content = []
         for id, username in friend_list:

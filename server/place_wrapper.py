@@ -45,7 +45,7 @@ class PlaceRoute():
             self.description = self.content.get("description", None)
             success, code, content = self.update_place()
         elif self.task == "delete_place":
-            self.place_id = self.content.get("id", None)
+            self.id = self.content.get("id", None)
             success, code, content = self.delete_place()
         elif self.task == "like_friend_place":
             pass
@@ -128,10 +128,11 @@ class PlaceRoute():
                 self.session.query(User)
                 .filter(User.id == tag.friend_id, User.active).first()
             )
-            tagged_friends.append({
-                "id": friend_as_user.id,
-                "username": friend_as_user.username
-            })
+            if friend_as_user:
+                tagged_friends.append({
+                    "id": friend_as_user.id,
+                    "username": friend_as_user.username
+                })
 
         if place:
             success = True
@@ -224,7 +225,7 @@ class PlaceRoute():
     def delete_place(self):
         content = {}
 
-        place = self.session.query(Place).filter(Place.id == self.place_id, Place.user_id == self.user.id).first()
+        place = self.session.query(Place).filter(Place.id == self.id, Place.user_id == self.user.id).first()
         place.active = False
         self.session.commit()
 
