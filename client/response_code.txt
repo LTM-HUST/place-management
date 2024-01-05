@@ -19,6 +19,7 @@
 131 View List Friend Request Successfully
 140 View Notification Successfully
 150 View Profile Successfully
+160 View Category Successfully
 200 Username or Password Hasn't Filled In
 201 Account Existed
 202 Username or Password Is Incorrect
