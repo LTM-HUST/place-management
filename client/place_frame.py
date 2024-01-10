@@ -471,7 +471,7 @@ class UpdatePlaceFrame(CTkFrame):
         self.columnconfigure(0, weight=1)
 
         # Widgets
-        self.label = CTkLabel(master=self, text='Create place', font=CTkFont(size=18, weight='bold'))
+        self.label = CTkLabel(master=self, text='Update place', font=CTkFont(size=18, weight='bold'))
         self.label.grid(row=0, column=0, sticky='w', pady=(0, 20))
 
         self.name_label = CTkLabel(master=self, text='Name (required)')
