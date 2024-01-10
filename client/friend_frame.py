@@ -88,6 +88,7 @@ class FriendFrame(CTkScrollableFrame):
     def add_friend_toplevel(self):
         if self.toplevel_add is None or not self.toplevel_add.winfo_exists():
             self.toplevel_add = AddFriendWindow(self)  # create window if its None or destroyed
+            self.toplevel_add.focus()
         else:
             self.toplevel_add.focus()
 

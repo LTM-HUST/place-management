@@ -87,6 +87,7 @@ class ProfileFrame(CTkFrame):
     def password_toplevel(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
             self.toplevel_window = PasswordWindow(self)  # create window if its None or destroyed
+            self.toplevel_window.focus()
         else:
             self.toplevel_window.focus()  # if window exists focus it
 

@@ -53,7 +53,10 @@ class FriendRoute():
             code = 206
         else:
             self.friend_id = friend.id
-            if self.find_relationship():
+            if self.friend_id == self.user.id:
+                success = False
+                code = 206
+            elif self.find_relationship():
                 success = False
                 code = 220
             else:
