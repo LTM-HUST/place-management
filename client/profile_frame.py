@@ -96,5 +96,5 @@ class ProfileFrame(CTkFrame):
         if not response.get("success", None):
             messagebox.showerror("Error", message=code2message(response.get("code", None)))
         else:
-            messagebox.showinfo("Success", message=code2message(response.get("code", None)))
             self.master.master.guest_nav()
+            messagebox.showinfo("Success", message=code2message(response.get("code", None)))       
