@@ -1,0 +1,42 @@
+{"session_id": "", "task": "register", "content": {"username": "huy", "password": "123456", "retype_password": "111111"}}
+{"session_id": "", "task": "register", "content": {"username": "huy", "password": "", "retype_password": "123456"}}
+{"session_id": "", "task": "register", "content": {"username": "huy", "password": "123456", "retype_password": "123456"}}
+{"session_id": "", "task": "register", "content": {"username": "huy", "password": "123456789", "retype_password": "123456789"}}
+{"session_id": "", "task": "login", "content": {"username": "huy", "password": "123456a"}}
+{"session_id": "", "task": "login", "content": {"username": "huy", "password": "123456"}}
+{"session_id": "", "task": "login", "content": {"username": "huy", "password": "123456"}}
+{"session_id": "", "task": "view_profile", "content": {}}
+{"session_id": "", "task": "change_password", "content": {"old_password": "123456", "new_password": "123456789", "retype_password": "1"}}
+{"session_id": "", "task": "change_password", "content": {"old_password": "1", "new_password": "123456789", "retype_password": "123456789"}}
+{"session_id": "", "task": "change_password", "content": {"old_password": "123456", "new_password": "123456789", "retype_password": "123456789"}}
+{"session_id": "", "task": "logout", "content": {}}
+{"session_id": "", "task": "login", "content": {"username": "a", "password": "1"}}
+{"session_id": "", "task": "view_places", "content": {}}
+{"session_id": "", "task": "view_my_places", "content": {}}
+{"session_id": "", "task": "view_liked_places", "content": {}}
+{"session_id": "", "task": "view_place_detail", "content": {"id": 98}}
+{"session_id": "", "task": "view_categories", "content": {}}
+{"session_id": "", "task": "create_place", "content": {"name": "HCM City", "address": "Ho Chi Minh, Vietnam", "tags": ["bowling_alley", "campground", "car_repair", "pet_store", "pharmacy", "zoo"], "tagged_friends": [3], "description": "Another city in Vietnam"}}
+{"session_id": "", "task": "create_place", "content": {"name": "", "address": "Ho Chi Minh, Vietnam", "tags": ["bowling_alley", "campground", "car_repair", "pet_store", "pharmacy", "zoo"], "tagged_friends": [3], "description": "Another city in Vietnam"}}
+{"session_id": "", "task": "view_place_detail", "content": {"id": 100}}
+{"session_id": "", "task": "update_place", "content": {"id": 100, "name": "Ho Chi Minh City", "address": "Ho Chi Minh, Viet Nam", "tags": ["campground", "car_repair", "lodging", "meal_takeaway", "pet_store", "pharmacy"], "tagged_friends": [3, 1], "description": "Another city in Vietnam."}}
+{"session_id": "", "task": "view_place_detail", "content": {"id": 100}}
+{"session_id": "", "task": "delete_place", "content": {"id": 100}}
+{"session_id": "", "task": "view_my_places", "content": {}}
+{"session_id": "", "task": "view_notification_list", "content": {}}
+{"session_id": "", "task": "view_friend_list", "content": {}}
+{"session_id": "", "task": "view_friend_request", "content": {}}
+{"session_id": "", "task": "send_friend_request", "content": {"target_friend_name": "dfkdfk"}}
+{"session_id": "", "task": "send_friend_request", "content": {"target_friend_name": "ewald69"}}
+{"session_id": "", "task": "send_friend_request", "content": {"target_friend_name": "huy"}}
+{"session_id": "", "task": "accept_friend_request", "content": {"source_friend_id": 22}}
+{"session_id": "", "task": "accept_friend_request", "content": {"source_friend_id": 25}}
+{"session_id": "", "task": "accept_friend_request", "content": {"source_friend_id": 4}}
+{"session_id": "", "task": "reject_friend_request", "content": {"source_friend_id": 22}}
+{"session_id": "", "task": "reject_friend_request", "content": {"source_friend_id": 25}}
+{"session_id": "", "task": "reject_friend_request", "content": {"source_friend_id": 5}}
+{"session_id": "", "task": "delete_friend", "content": {"friend_id": 22}}
+{"session_id": "", "task": "delete_friend", "content": {"friend_id": 25}}
+{"session_id": "", "task": "delete_friend", "content": {"friend_id": 4}}
+{"session_id": "", "task": "not a task"}
+not a valid request
