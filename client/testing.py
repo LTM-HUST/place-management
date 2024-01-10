@@ -190,7 +190,7 @@ def main():
     first_resp = recvall_str(sock)
     session_id = first_resp['session_id']
 
-    with open('./client/testing.txt', 'r') as file:
+    with open('./client/testing_send.txt', 'r') as file:
         for line in file:
             message = json.loads(line)
             message['session_id'] = session_id
