@@ -42,14 +42,20 @@ def task(sock, session_id, ip, port):
     while True:
         try:
             data = recvall_str(sock)
+        except ValueError as e:
+            response = {
+                "success": False,
+                "code": 301,
+                "content": {}
+            }
+            sendall_str(sock, response)
+            write_log(ip, port, type="response", data=response)
+            continue
         except (UnboundLocalError, ConnectionError) as e:
             write_log(ip, port, type="close")
             session_manager.delete_session(session_id)
             break
 
-        if not data:
-            write_log(ip, port, type="close")
-            break
         write_log(ip, port, type="request", data=data)
         
         try:
