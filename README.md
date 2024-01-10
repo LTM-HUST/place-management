@@ -1,16 +1,16 @@
 # PLACE MANAGEMENT - IT4062 Project
 
 ## How to run with .vdi file:
-- Open XAMPP.... (Hiếu viết)
+- Open XAMPP by running: ```sudo /opt/lampp/lampp start```
 - Open terminal and move to project folder, then run the server:
 
-    ```cd ...``` (Hiếu để ở đâu thì ghi vào)
+    ```cd Desktop/place_management``` 
 
     ```python3 server/server.py```
 
 - Open another terminal and move to project folder, then run the client:
 
-    ```cd ...``` (Hiếu để ở đâu thì ghi vào)
+    ```cd Desktop/place_management``` 
 
     ```python3 client/client.py```
 
