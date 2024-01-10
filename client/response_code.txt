@@ -9,7 +9,6 @@
 114 Create Place Successfully
 115 Update Place Successfully
 116 Delete Place Successfully
-117 Like Friend's Place Successfully
 120 Send Friend Request Successfully
 121 Cancel Friend Request Successfully
 122 Accept Friend Request Successfully
@@ -29,7 +28,6 @@
 206 This User Doesn't Exist
 207 Old Password Is Incorrect
 214 Required Fields Haven't Filled In
-216 Place No Longer Exist
 220 This User Already In Your Friend List
 221 Friend Request No Longer Exist
 224 This User No Longer In Friend List
