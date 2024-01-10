@@ -51,28 +51,37 @@ def task(sock, session_id, ip, port):
             write_log(ip, port, type="close")
             break
         write_log(ip, port, type="request", data=data)
-        if isinstance(data, str):
-            data = json.loads(data)
+        
+        try:
+            if isinstance(data, str):
+                data = json.loads(data)
 
-        task = data.get("task", None)
-        if task in TASK_FRIEND:
-            route = FriendRoute(session, session_id, data)
-            response = route.response()
-        elif task in TASK_NOTIFICATION:
-            route = NotificationRoute(session, session_id, data)
-            response = route.response()
-        elif task in TASK_USER:
-            route = UserRoute(session, session_id, data)
-            response = route.response()
-        elif task in TASK_PLACE:
-            route = PlaceRoute(session, session_id, data)
-            response = route.response()
-        else:
+            task = data.get("task", None)
+            if task in TASK_FRIEND:
+                route = FriendRoute(session, session_id, data)
+                response = route.response()
+            elif task in TASK_NOTIFICATION:
+                route = NotificationRoute(session, session_id, data)
+                response = route.response()
+            elif task in TASK_USER:
+                route = UserRoute(session, session_id, data)
+                response = route.response()
+            elif task in TASK_PLACE:
+                route = PlaceRoute(session, session_id, data)
+                response = route.response()
+            else:
+                response = {
+                    "success": False,
+                    "code": 300,
+                    "content": {}
+                }
+        except Exception as e:
             response = {
                 "success": False,
-                "code": 300,
+                "code": 301,
                 "content": {}
             }
+            
         sendall_str(sock, response)
         write_log(ip, port, type="response", data=response)
 
