@@ -16,7 +16,7 @@ class AddFriendWindow(CTkToplevel):
         
         self.friend_name = StringVar()
         
-        self.title("Add New Friend")
+        self.title("Add A New Friend")
         self.geometry("400x300")
         
         self.columnconfigure(0, weight=1)
